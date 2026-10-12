@@ -1,4 +1,4 @@
-package com.example.banking_backend.model;
+package com.project.budget.model;
 
 import java.time.LocalDateTime;
 

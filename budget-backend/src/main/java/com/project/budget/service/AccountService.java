@@ -1,4 +1,4 @@
-package com.example.banking_backend.service;
+package com.project.budget.service;
 
 import java.util.List;
 

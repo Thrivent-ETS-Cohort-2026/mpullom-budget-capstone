@@ -1,4 +1,4 @@
-package com.example.banking_backend.dto;
+package com.project.budget.dto;
 
 import com.example.banking_backend.model.AccountStatus;
 import com.example.banking_backend.model.AccountType;

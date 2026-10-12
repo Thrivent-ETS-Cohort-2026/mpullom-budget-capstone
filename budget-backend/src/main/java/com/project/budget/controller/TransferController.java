@@ -1,4 +1,4 @@
-package com.example.banking_backend.controller;
+package com.project.budget.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

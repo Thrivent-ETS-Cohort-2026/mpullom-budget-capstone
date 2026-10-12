@@ -1,4 +1,4 @@
-package com.example.banking_backend.repository;
+package com.project.budget.repository;
 
 import java.util.List;
 

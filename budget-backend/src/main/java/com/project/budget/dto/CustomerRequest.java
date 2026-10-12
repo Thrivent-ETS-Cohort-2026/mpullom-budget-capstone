@@ -1,4 +1,4 @@
-package com.example.banking_backend.dto;
+package com.project.budget.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

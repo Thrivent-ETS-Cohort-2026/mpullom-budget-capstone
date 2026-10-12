@@ -1,4 +1,4 @@
-package com.example.banking_backend.controller;
+package com.project.budget.controller;
 
 import java.util.List;
 
