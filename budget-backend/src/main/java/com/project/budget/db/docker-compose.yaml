@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: budget_db
+      POSTGRES_USER: budgeter
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - budget-data:/var/lib/postgresql/data 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U budgeter -d budget_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  budget-data: 
