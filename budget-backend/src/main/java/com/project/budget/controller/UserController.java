@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.budget.dto.UserRequest;
@@ -63,5 +64,14 @@ public class UserController {
     @GetMapping("/{id}/accounts")
     public ResponseEntity<List<Account>> getUserAccounts(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserAccounts(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getUsers(@RequestParam(required = false) String email) {
+        if (email != null && !email.isBlank()) {
+            User user = userService.getUserByEmail(email);
+            return ResponseEntity.ok(user);
+        }
+        return ResponseEntity.ok(userService.getUsers());
     }
 }

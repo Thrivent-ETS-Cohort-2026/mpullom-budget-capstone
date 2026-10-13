@@ -83,6 +83,11 @@ public class UserService {
         return accountService.getAccountsByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
+    public User getUserByEmail(String email){
+        return users.findUserByEmail(email);
+    }
+
     // public User validateUser(Long userId) {
     // User user = users.findById(userId)
     // .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
