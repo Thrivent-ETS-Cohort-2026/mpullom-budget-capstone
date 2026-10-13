@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-public record CustomerRequest(
+public record UserRequest(
     @NotBlank(message = "First name is required")
     String firstName,
 
@@ -22,7 +22,7 @@ public record CustomerRequest(
     )
     String phoneNumber
 ) {
-    public CustomerRequest {
+    public UserRequest {
         firstName = firstName != null ? firstName.trim() : null;
         lastName = lastName != null ? lastName.trim() : null;
         email = email != null ? email.trim().toLowerCase() : null;

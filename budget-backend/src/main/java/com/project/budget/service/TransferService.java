@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.banking_backend.dto.TransferRequest;
-import com.example.banking_backend.model.Transfer;
-import com.example.banking_backend.repository.TransferRepository;
+import com.project.budget.dto.TransferRequest;
+import com.project.budget.model.Transfer;
+import com.project.budget.repository.TransferRepository;
 
 @Service
 public class TransferService {

@@ -9,10 +9,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.banking_backend.dto.AccountRequest;
-import com.example.banking_backend.model.Account;
-import com.example.banking_backend.model.AccountStatus;
-import com.example.banking_backend.repository.AccountRepository;
+import com.project.budget.dto.AccountRequest;
+import com.project.budget.model.Account;
+import com.project.budget.model.AccountStatus;
+import com.project.budget.repository.AccountRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -29,7 +29,7 @@ public class AccountService {
     public Account createAccount(AccountRequest newAccount) {
         Account account = new Account(
                 newAccount.accountType(),
-                newAccount.customerId(),
+                newAccount.userId(),
                 newAccount.initialBalance(),
                 newAccount.accountStatus());
 
@@ -62,11 +62,6 @@ public class AccountService {
         accounts.delete(account);
     }
 
-    @Transactional(readOnly = true)
-    public List<Account> getAccountsByCustomerId(Long customerId) {
-        return accounts.findByCustomerId(customerId);
-    }
-
     @Transactional
     public Account modifyBalance(Long accountNumber, Long change) {
         Account account = getAccountByNum(accountNumber);
@@ -86,7 +81,7 @@ public class AccountService {
 
         Long currentUserId = getCurrentUserIdFromRequest();
 
-        if (!account.getCustomerId().equals(currentUserId)) {
+        if (!account.getUserId().equals(currentUserId)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "Current user is not authorized to make this call");
@@ -127,6 +122,6 @@ public class AccountService {
         if (userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
-        return accounts.findByCustomerId(userId);
+        return accounts.findByUserId(userId);
     }
 }

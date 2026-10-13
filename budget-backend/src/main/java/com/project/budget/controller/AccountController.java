@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.banking_backend.dto.AccountRequest;
-import com.example.banking_backend.model.Account;
-import com.example.banking_backend.model.AccountStatus;
-import com.example.banking_backend.model.Transaction;
-import com.example.banking_backend.service.AccountService;
-import com.example.banking_backend.service.TransactionService;
+import com.project.budget.dto.AccountRequest;
+import com.project.budget.model.Account;
+import com.project.budget.model.AccountStatus;
+import com.project.budget.model.Transaction;
+import com.project.budget.service.AccountService;
+import com.project.budget.service.TransactionService;
 
 import jakarta.validation.Valid;
 

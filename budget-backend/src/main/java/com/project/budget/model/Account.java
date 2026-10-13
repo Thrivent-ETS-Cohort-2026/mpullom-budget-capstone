@@ -15,8 +15,8 @@ public class Account {
     @Column(name = "account_number")
     private Long accountNumber;
 
-    @Column(name = "customer_id", nullable = false)
-    private Long customerId;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type", nullable = false)
@@ -32,9 +32,9 @@ public class Account {
     public Account() {
     }
 
-    public Account(AccountType accountType, Long customerId, double initialBalance, AccountStatus accountStatus) {
+    public Account(AccountType accountType, Long userId, double initialBalance, AccountStatus accountStatus) {
         this.accountType = accountType;
-        this.customerId = customerId;
+        this.userId = userId;
         this.balance = initialBalance;
         this.accountStatus = accountStatus;
     }
@@ -43,8 +43,8 @@ public class Account {
         return accountNumber;
     }
 
-        public Long getCustomerId() {
-        return this.customerId;
+        public Long getUserId() {
+        return this.userId;
     }
 
     public AccountType getAccountType() {

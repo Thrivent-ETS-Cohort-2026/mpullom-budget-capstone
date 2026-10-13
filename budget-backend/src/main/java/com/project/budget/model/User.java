@@ -9,10 +9,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
-public class Customer {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "customer_id")
+    @Column(name = "user_id")
     private Long id;
 
     @NotBlank(message = "First name is required")
@@ -32,11 +32,11 @@ public class Customer {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    public Customer() {
+    public User() {
 
     }
 
-    public Customer(String firstName, String lastName, String email, String phoneNumber) {
+    public User(String firstName, String lastName, String email, String phoneNumber) {
 
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalArgumentException("First name cannot be null or empty.");

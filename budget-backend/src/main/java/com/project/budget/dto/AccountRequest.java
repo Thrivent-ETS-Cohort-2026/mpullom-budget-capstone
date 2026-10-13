@@ -1,7 +1,7 @@
 package com.project.budget.dto;
 
-import com.example.banking_backend.model.AccountStatus;
-import com.example.banking_backend.model.AccountType;
+import com.project.budget.model.AccountStatus;
+import com.project.budget.model.AccountType;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 public record AccountRequest(
         @NotNull(message = "Account type is required") AccountType accountType,
 
-        @NotNull(message = "Customer ID is required") Long customerId,
+        @NotNull(message = "User ID is required") Long userId,
 
         @Min(value = 0, message = "Initial balance cannot be negative") double initialBalance,
 

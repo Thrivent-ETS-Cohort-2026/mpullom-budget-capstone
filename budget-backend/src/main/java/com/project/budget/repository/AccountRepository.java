@@ -4,8 +4,9 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.example.banking_backend.model.Account;
+import com.project.budget.model.Account;
+
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
-    List<Account> findByCustomerId(Long customerId);
+    List<Account> findByUserId(Long userId);
 }

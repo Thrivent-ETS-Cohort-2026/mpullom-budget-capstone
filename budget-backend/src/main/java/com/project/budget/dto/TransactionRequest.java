@@ -1,7 +1,8 @@
 package com.project.budget.dto;
 
-import com.example.banking_backend.model.TransactionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.project.budget.model.TransactionType;
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;

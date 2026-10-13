@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.banking_backend.dto.TransactionRequest;
-import com.example.banking_backend.model.Transaction;
-import com.example.banking_backend.model.TransactionType;
-import com.example.banking_backend.service.TransactionService;
+import com.project.budget.dto.TransactionRequest;
+import com.project.budget.model.Transaction;
+import com.project.budget.model.TransactionType;
+import com.project.budget.service.TransactionService;
 
 import jakarta.validation.Valid;
 

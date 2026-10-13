@@ -9,12 +9,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.banking_backend.dto.TransactionRequest;
-import com.example.banking_backend.model.Account;
-import com.example.banking_backend.model.Transaction;
-import com.example.banking_backend.model.TransactionType;
-import com.example.banking_backend.repository.AccountRepository;
-import com.example.banking_backend.repository.TransactionRepository;
+import com.project.budget.dto.TransactionRequest;
+import com.project.budget.model.Account;
+import com.project.budget.model.Transaction;
+import com.project.budget.model.TransactionType;
+import com.project.budget.repository.AccountRepository;
+import com.project.budget.repository.TransactionRepository;
 
 @Service
 public class TransactionService {
