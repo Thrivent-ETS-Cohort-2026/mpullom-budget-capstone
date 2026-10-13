@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    environment:
+      DATABASE_URL: jdbc:postgresql://host.docker.internal:5432/budget_db
+      DATABASE_USERNAME: budgeter
+      DATABASE_PASSWORD: password
+    ports:
+      - "8080:8080"
+
+volumes:
+  budget_db:

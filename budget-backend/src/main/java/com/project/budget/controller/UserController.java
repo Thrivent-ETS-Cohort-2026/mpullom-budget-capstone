@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.budget.dto.UserRequest;
@@ -66,12 +65,14 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserAccounts(id));
     }
 
-    @GetMapping
-    public ResponseEntity<?> getUsers(@RequestParam(required = false) String email) {
-        if (email != null && !email.isBlank()) {
-            User user = userService.getUserByEmail(email);
-            return ResponseEntity.ok(user);
-        }
-        return ResponseEntity.ok(userService.getUsers());
+@GetMapping("/email/{email}")
+public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+    User user = userService.getUserByEmail(email);
+    
+    if (user == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+    
+    return ResponseEntity.ok(user);
+}
 }
