@@ -20,7 +20,10 @@ public record UserRequest(
         regexp = "^\\+?[1-9]\\d{1,14}$",
         message = "Phone number was not in correct format"
     )
-    String phoneNumber
+    String phoneNumber,
+
+    @NotBlank(message = "Password is required")
+    String password
 ) {
     public UserRequest {
         firstName = firstName != null ? firstName.trim() : null;

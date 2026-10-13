@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "user_data")
@@ -17,28 +16,27 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @NotBlank(message = "First name is required")
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @NotBlank(message = "Email is required")
     @Email(message = "Invalid email syntax")
     @Column(name = "email", nullable = false)
     private String email;
 
-    @NotBlank(message = "Phone Number is required")
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
+
+    @Column(name = "password", nullable = false)
+    private String password;
 
     public User() {
 
     }
 
-    public User(String firstName, String lastName, String email, String phoneNumber) {
+    public User(String firstName, String lastName, String email, String phoneNumber, String password) {
 
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalArgumentException("First name cannot be null or empty.");
@@ -56,10 +54,15 @@ public class User {
             throw new IllegalArgumentException("Phone number cannot be null or empty.");
         }
 
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Password cannot be null or empty.");
+        }
+
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.password = password;
     }
 
     public Long getId() {
@@ -100,5 +103,13 @@ public class User {
 
     public void setPhoneNumber(String newPhoneNumber) {
         this.phoneNumber = newPhoneNumber;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String newPassword) {
+        this.password = newPassword;
     }
 }

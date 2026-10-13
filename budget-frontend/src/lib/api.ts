@@ -28,7 +28,7 @@ export async function fetchUser(email: string): Promise<User> {
     throw new Error("User ID for fetch request was null or invalid");
   }
 
-  const url = `${BASE_URL}/users/email?email=${encodeURIComponent(email)}`;
+const url = `${BASE_URL}/users/email/${encodeURIComponent(email)}`;
 
   try {
     const response = await fetch(url, {

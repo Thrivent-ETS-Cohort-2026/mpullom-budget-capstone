@@ -30,7 +30,8 @@ public class UserService {
                 newUser.firstName(),
                 newUser.lastName(),
                 newUser.email(),
-                newUser.phoneNumber());
+                newUser.phoneNumber(),
+                newUser.password());
 
         return users.save(user);
     }
