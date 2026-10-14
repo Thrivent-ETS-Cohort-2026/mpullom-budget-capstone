@@ -27,9 +27,6 @@ export default function Login({ onSwitchToSignup }: LoginProps) {
         }
     }
 
-    function handleSignUpRouting() {
-        onSwitchToSignup()
-    }
 
     return (
         <div className="w-full max-w-xl p-8 bg-sky-400 backdrop-blur rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-6">
@@ -61,7 +58,7 @@ export default function Login({ onSwitchToSignup }: LoginProps) {
             <div className="flex gap-4 pt-2">
                 <button
                     className="flex-1 py-2.5 px-4 border-2 border-slate-500 rounded-lg font-medium hover:bg-slate-800 active:bg-slate-900 transition"
-                    onClick={() => handleSignUpRouting()}
+                    onClick={() => onSwitchToSignup()}
                 >
                     Sign Up
                 </button>
