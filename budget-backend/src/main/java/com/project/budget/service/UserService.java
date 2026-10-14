@@ -6,12 +6,16 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.project.budget.dto.UserRequest;
 import com.project.budget.model.Account;
 import com.project.budget.model.User;
 import com.project.budget.repository.UserRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class UserService {
@@ -93,10 +97,11 @@ public class UserService {
         return foundUser;
     }
 
-    @Transactional
-    public User updateUserByEmail(String email, UserRequest userUpdates) {
-        User user = users.findUserByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User with email " + email + " not found"));
+@Transactional
+    public User updateUserByToken(String token, UserRequest userUpdates) {
+        User user = users.findUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User not found"));
 
         if (userUpdates.firstName() != null && !userUpdates.firstName().isBlank()) {
             user.setFirstName(userUpdates.firstName());
@@ -117,42 +122,41 @@ public class UserService {
         return users.save(user);
     }
 
-    // public User validateUser(Long userId) {
-    // User user = users.findById(userId)
-    // .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-    // "User not found"));
+    public User validateUser(Long userId) {
+        User user = users.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User not found"));
 
-    // Long currentUserId = getCurrentUserIdFromRequest();
+        Long currentUserId = getCurrentUserIdFromRequest();
 
-    // if (!userId.equals(currentUserId)) {
-    // throw new ResponseStatusException(
-    // HttpStatus.FORBIDDEN,
-    // "Current user is not authorized to make this call");
-    // }
+        if (!userId.equals(currentUserId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Current user is not authorized to make this call");
+        }
 
-    // return user;
-    // }
+        return user;
+    }
 
-    // private Long getCurrentUserIdFromRequest() {
-    // ServletRequestAttributes attributes = (ServletRequestAttributes)
-    // RequestContextHolder.getRequestAttributes();
+    private Long getCurrentUserIdFromRequest() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
-    // if (attributes == null) {
-    // throw new ResponseStatusException(
-    // HttpStatus.INTERNAL_SERVER_ERROR,
-    // "No active request context found");
-    // }
+        if (attributes == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "No active request context found");
+        }
 
-    // HttpServletRequest request = attributes.getRequest();
+        HttpServletRequest request = attributes.getRequest();
 
-    // String currentId = request.getParameter("userId");
+        String currentId = request.getParameter("userId");
 
-    // if (currentId == null || currentId.isBlank()) {
-    // throw new ResponseStatusException(
-    // HttpStatus.UNAUTHORIZED,
-    // "Missing user information");
-    // }
+        if (currentId == null || currentId.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Missing user information");
+        }
 
-    // return Long.parseLong(currentId);
-    // }
+        return Long.parseLong(currentId);
+    }
 }

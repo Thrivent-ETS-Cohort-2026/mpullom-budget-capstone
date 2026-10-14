@@ -1,37 +1,32 @@
-import { User } from "@/types/DataTypes";
+import { User, UserRequest } from "@/types/DataTypes";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 export async function fetchUser(email: string): Promise<User> {
-  if ((email == "") || (email == null)) {
-    throw new Error("User ID for fetch request was null or invalid");
-  }
-
-const url = `${BASE_URL}/users/email/${encodeURIComponent(email)}`;
-
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-User-Id': email,
-      },
-      cache: 'no-store',
-    });
+    const params = new URLSearchParams({ email });
+    const url = `${BASE_URL}/users/email?${params.toString()}`;
+    console.log("Fetching URL:", url);
+
+    const response = await fetch(url);
+    console.log("Response status:", response.status);
 
     if (!response.ok) {
-      throw new Error(`Response failed with status: ${response.status}`);
+      throw new Error(`Server returned status: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("Parsed user data successfully:", data);
     return data;
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to fetch user");
+
+  } catch (err: any) {
+    console.error("CRITICAL ERROR inside fetchUser line 7:", err);
+    throw err;
   }
 }
 
 // Untested (Landing)
-export async function createUser(newUser: User): Promise<void> {
+export async function createUser(newUser: UserRequest): Promise<void> {
   try {
     const response = await fetch(`${BASE_URL}/users`, {
       method: "POST",
@@ -47,12 +42,21 @@ export async function createUser(newUser: User): Promise<void> {
   }
 }
 
-export async function editUser(changes: User): Promise<void> {
+export async function editUser(changes: User, token: string): Promise<void> {
   try {
+    console.log(changes)
+    const changeRequest: UserRequest = {
+      firstName: changes.firstName,
+      lastName: changes.lastName,
+      email: changes.email,
+      phoneNumber: changes.phoneNumber,
+      password: changes.password
+    }
+    console.log(changeRequest)
     const response = await fetch(`${BASE_URL}/users`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(changes)
+      headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(changeRequest)
     });
 
     if (!response.ok) {

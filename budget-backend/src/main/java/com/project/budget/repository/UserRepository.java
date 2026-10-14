@@ -8,4 +8,5 @@ import com.project.budget.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findUserByEmail(String email);
+    Optional<User> findUserByToken(String token);
 }

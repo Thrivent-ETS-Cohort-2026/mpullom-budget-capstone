@@ -1,9 +1,19 @@
+export interface UserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+}
+
 export interface User {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phoneNumber: string;
-    password: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  token: string;
 }
 
 export interface Account {

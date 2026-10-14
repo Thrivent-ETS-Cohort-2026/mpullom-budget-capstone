@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.budget.dto.UserRequest;
@@ -23,7 +26,11 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(
+    origins = "http://localhost:3000", 
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE},
+    allowedHeaders = {"Authorization", "Content-Type"}
+)
 public class UserController {
     private final UserService userService;
 
@@ -65,8 +72,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserAccounts(id));
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+    @GetMapping("/email")
+    public ResponseEntity<User> getUserByEmail(@RequestParam String email) {
         User user = userService.getUserByEmail(email);
 
         if (user == null) {
@@ -76,10 +83,16 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PutMapping("/email/{email}")
-    public ResponseEntity<User> updateUserByEmail(@PathVariable String email,
-            @Valid @RequestBody UserRequest userUpdates) {
-        User savedUser = userService.updateUserByEmail(email, userUpdates);
-        return ResponseEntity.ok(savedUser);
+    @PutMapping
+    public ResponseEntity<String> updateUserByToken(
+            @RequestBody UserRequest userUpdates,
+            @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body("Missing or invalid token format");
+        }
+
+        String token = authHeader.substring(7);
+        userService.updateUserByToken(token, userUpdates);
+        return ResponseEntity.ok("Successful update");
     }
 }

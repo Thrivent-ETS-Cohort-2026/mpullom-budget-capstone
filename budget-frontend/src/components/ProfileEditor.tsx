@@ -1,7 +1,8 @@
 'use client'
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { usePathname } from 'next/navigation';
 import { createUser, editUser } from '@/lib/api';
+import { AuthContext } from "@/context/AuthContext";
 
 interface ProfileEditorProps {
     onSwitchToLogin?: () => void;
@@ -14,6 +15,8 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
     const [emailInput, setEmailInput] = useState<string>("");
     const [passInput, setPassInput] = useState<string>("");
     const pathname = usePathname();
+
+    const { currentUser } = useContext(AuthContext);
 
     async function handleSignUp() {
         if (pathname === '/') {
@@ -31,14 +34,23 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
     }
 
     async function handleEdit() {
+        if (currentUser == null) {
+            console.log("Skipping edit as current user is null");
+        }
         if (pathname.startsWith('/dashboard')) {
-            await editUser({
+            if (currentUser != null) {
+                await editUser({
                 firstName: firstNameInput,
                 lastName: lastNameInput,
                 email: emailInput,
                 phoneNumber: phoneNumberInput,
                 password: passInput
-            });
+            }, currentUser.token);
+            }
+            else {
+                console.log("Skipping edit as current user is null");
+            }
+
         } else {
             console.log("Skipping edit based on pathname:", pathname);
         }
