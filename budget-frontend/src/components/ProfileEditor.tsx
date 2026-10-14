@@ -40,12 +40,12 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
         if (pathname.startsWith('/dashboard')) {
             if (currentUser != null) {
                 await editUser({
-                firstName: firstNameInput,
-                lastName: lastNameInput,
-                email: emailInput,
-                phoneNumber: phoneNumberInput,
-                password: passInput
-            }, currentUser.token);
+                    firstName: firstNameInput,
+                    lastName: lastNameInput,
+                    email: emailInput,
+                    phoneNumber: phoneNumberInput,
+                    password: passInput
+                }, currentUser.token);
             }
             else {
                 console.log("Skipping edit as current user is null");

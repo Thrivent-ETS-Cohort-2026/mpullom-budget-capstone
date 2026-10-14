@@ -42,7 +42,7 @@ export async function createUser(newUser: UserRequest): Promise<void> {
   }
 }
 
-export async function editUser(changes: User, token: string): Promise<void> {
+export async function editUser(changes: UserRequest, token: string): Promise<void> {
   try {
     console.log(changes)
     const changeRequest: UserRequest = {
