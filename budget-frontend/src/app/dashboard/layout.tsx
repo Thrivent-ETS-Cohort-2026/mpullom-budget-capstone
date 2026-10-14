@@ -1,15 +1,26 @@
 'use client';
-import { useContext } from 'react';
-import { useRouter } from 'next/navigation';
+import { useContext, useState } from 'react';
 import { AuthContext } from '@/context/AuthContext';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const [editProfile, setEditProfile] = useState(true);
     const { currentUser } = useContext(AuthContext);
     const router = useRouter();
+    const pathname = usePathname();
+
+    function toggleProfEditor() {
+        if (editProfile){
+            setEditProfile(false)
+        }
+        else {
+            setEditProfile(true)
+        }
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100">
@@ -32,23 +43,29 @@ export default function DashboardLayout({
                             <img
                                 src="/profile-icon.jpeg"
                                 alt="User Profile"
+                                onClick={() => toggleProfEditor()}
                                 className="w-full h-full object-cover block"
                             />
                         </div>
                     </div>
                 </div>
-
                 <div className="flex border border-slate-700 rounded-lg overflow-hidden bg-slate-900/50">
                     <button
                         onClick={() => router.push('/dashboard/banking')}
-                        className="flex-1 py-3 text-center font-medium text-slate-300 hover:bg-slate-700/50 hover:text-white border-r border-slate-700 transition"
+                        className={`flex-1 py-3 text-center font-medium border-r border-slate-700 transition ${pathname === '/dashboard/banking'
+                            ? 'bg-sky-600 text-white shadow-inner' // Lit up when active
+                            : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' // Dimmed when inactive
+                            }`}
                     >
                         Banking
                     </button>
 
                     <button
                         onClick={() => router.push('/dashboard/budgeting')}
-                        className="flex-1 py-3 text-center font-medium bg-blue-600 text-white shadow-inner transition"
+                        className={`flex-1 py-3 text-center font-medium transition ${pathname === '/dashboard/budgeting'
+                            ? 'bg-sky-600 text-white shadow-inner' // Lit up when active
+                            : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' // Dimmed when inactive
+                            }`}
                     >
                         Budgeting
                     </button>

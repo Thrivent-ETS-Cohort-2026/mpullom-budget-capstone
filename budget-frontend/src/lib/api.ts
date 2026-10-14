@@ -1,28 +1,7 @@
 import { User } from "@/types/DataTypes";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-// export async function fetchAccounts(userId?: number): Promise<Account[]> {
-//   const url = userId 
-//     ? `${BASE_URL}/accounts?userId=${userId}` 
-//     : `${BASE_URL}/accounts`;
 
-//   const response = await fetch(url, {
-//     method: 'GET',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       ...(userId && { 'X-User-Id': userId.toString() }),
-//     },
-//     cache: 'no-store',
-//   });
-
-//   if (!response.ok) {
-//     throw new Error(`Failed to fetch accounts: ${response.status} ${response.statusText}`);
-//   }
-
-//   return response.json();
-// }
-
-//Untested (Landing)
 export async function fetchUser(email: string): Promise<User> {
   if ((email == "") || (email == null)) {
     throw new Error("User ID for fetch request was null or invalid");
@@ -52,9 +31,9 @@ const url = `${BASE_URL}/users/email/${encodeURIComponent(email)}`;
 }
 
 // Untested (Landing)
-async function createUser(newUser: User): Promise<void> {
+export async function createUser(newUser: User): Promise<void> {
   try {
-    const response = await fetch("/api/users", {
+    const response = await fetch(`${BASE_URL}/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser)

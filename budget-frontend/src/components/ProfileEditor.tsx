@@ -1,0 +1,106 @@
+'use client'
+import { useState } from "react";
+import { usePathname } from 'next/navigation';
+import { createUser } from '@/lib/api';
+
+interface ProfileEditorProps {
+    onSwitchToLogin: () => void;
+}
+
+export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
+    const [firstNameInput, setFirstNameInput] = useState<string>("");
+    const [lastNameInput, setLastNameInput] = useState<string>("");
+    const [phoneNumberInput, setPhoneNumberInput] = useState<string>("");
+    const [emailInput, setEmailInput] = useState<string>("");
+    const [passInput, setPassInput] = useState<string>("");
+    const pathname = usePathname();
+
+function handleSignUp() {
+        createUser({
+            firstName: firstNameInput,
+            lastName: lastNameInput,
+            email: emailInput,
+            phoneNumber: phoneNumberInput,
+            password: passInput
+        });
+    }
+
+    return (
+        <div className="w-full max-w-xl max-h-[85vh] overflow-y-auto p-6 bg-sky-400 backdrop-blur rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-4">
+
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-slate-700">First Name</label>
+                <input
+                    type="text"
+                    className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    placeholder="Firstname"
+                    value={firstNameInput}
+                    onChange={(e) => setFirstNameInput(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-slate-700">Last Name</label>
+                <input
+                    type="text"
+                    className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    placeholder="Lastname"
+                    value={lastNameInput}
+                    onChange={(e) => setLastNameInput(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-slate-700">Phone Number</label>
+                <input
+                    type="tel"
+                    className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    placeholder="Phone Number"
+                    value={phoneNumberInput}
+                    onChange={(e) => setPhoneNumberInput(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-slate-700">Email</label>
+                <input
+                    type="email"
+                    className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    placeholder="you@example.com"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                />
+            </div>
+
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-slate-700">Password</label>
+                <input
+                    type="password"
+                    className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    placeholder="••••••••"
+                    value={passInput}
+                    onChange={(e) => setPassInput(e.target.value)}
+                />
+            </div>
+
+            <div className="flex gap-4 pt-2">
+                <button
+                    type="button"
+                    className="flex-1 py-2.5 px-4 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-800 transition"
+                    onClick={handleSignUp}
+                >
+                    Accept Changes
+                </button>
+                
+                <button
+                    type="button"
+                    className="flex-1 py-2.5 px-4 bg-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-400 transition"
+                    onClick={onSwitchToLogin}
+                >
+                    Back to Login
+                </button>
+            </div>
+
+        </div>
+    );
+}

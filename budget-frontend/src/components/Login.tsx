@@ -5,7 +5,11 @@ import { validatePassword } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from "@/context/AuthContext";
 
-export default function Landing() {
+interface LoginProps {
+    onSwitchToSignup: () => void;
+}
+
+export default function Login({ onSwitchToSignup }: LoginProps) {
     const router = useRouter();
     const { setCurrentUser } = useContext(AuthContext);
 
@@ -17,16 +21,18 @@ export default function Landing() {
 
         if (currentUser != null) {
             setCurrentUser(currentUser);
-            router.push('/dashboard');
+            router.push('/dashboard/banking');
         } else {
             console.log("Invalid credentials");
         }
     }
 
-    function handleSignUpRouting() { }
+    function handleSignUpRouting() {
+        onSwitchToSignup()
+    }
 
     return (
-        <div className="w-fullmax-w-md p-8 bg-sky-400 backdrop-blur rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-6">
+        <div className="w-full max-w-xl p-8 bg-sky-400 backdrop-blur rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-6">
 
             <div className="flex flex-col gap-2">
                 <label htmlFor="email-input" className="text-sm font-medium text-slate-600">Email</label>
