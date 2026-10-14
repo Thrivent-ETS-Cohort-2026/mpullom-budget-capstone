@@ -1,7 +1,6 @@
 package com.project.budget.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +50,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<User> updateAccountStatus(@PathVariable Long id,
             @Valid @RequestBody UserRequest userUpdates) {
-        User savedUser = userService.updateUser(id, userUpdates);
+        User savedUser = userService.updateUserByID(id, userUpdates);
         return ResponseEntity.ok(savedUser);
     }
 
@@ -66,14 +65,21 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserAccounts(id));
     }
 
-@GetMapping("/email/{email}")
-public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
-    User user = userService.getUserByEmail(email);
-    
-    if (user == null) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    @GetMapping("/email/{email}")
+    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+        User user = userService.getUserByEmail(email);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(user);
     }
-    
-    return ResponseEntity.ok(user);
-}
+
+    @PutMapping("/email/{email}")
+    public ResponseEntity<User> updateUserByEmail(@PathVariable String email,
+            @Valid @RequestBody UserRequest userUpdates) {
+        User savedUser = userService.updateUserByEmail(email, userUpdates);
+        return ResponseEntity.ok(savedUser);
+    }
 }

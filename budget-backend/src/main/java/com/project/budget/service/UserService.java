@@ -51,7 +51,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long userId, UserRequest userUpdates) {
+    public User updateUserByID(Long userId, UserRequest userUpdates) {
         User user = users.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User " + userId + " not found"));
 
@@ -88,7 +88,33 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
-        return users.findUserByEmail(email);
+        User foundUser = users.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User with email:  " + email + " not found"));
+        return foundUser;
+    }
+
+    @Transactional
+    public User updateUserByEmail(String email, UserRequest userUpdates) {
+        User user = users.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User with email " + email + " not found"));
+
+        if (userUpdates.firstName() != null && !userUpdates.firstName().isBlank()) {
+            user.setFirstName(userUpdates.firstName());
+        }
+
+        if (userUpdates.lastName() != null && !userUpdates.lastName().isBlank()) {
+            user.setLastName(userUpdates.lastName());
+        }
+
+        if (userUpdates.email() != null && !userUpdates.email().isBlank()) {
+            user.setEmail(userUpdates.email());
+        }
+
+        if (userUpdates.phoneNumber() != null && !userUpdates.phoneNumber().isBlank()) {
+            user.setPhoneNumber(userUpdates.phoneNumber());
+        }
+
+        return users.save(user);
     }
 
     // public User validateUser(Long userId) {
