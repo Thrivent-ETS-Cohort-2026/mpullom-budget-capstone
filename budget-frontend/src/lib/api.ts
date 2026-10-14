@@ -46,3 +46,19 @@ export async function createUser(newUser: User): Promise<void> {
     throw new Error(error.message || "An unexpected error occurred.");
   }
 }
+
+export async function editUser(changes: User): Promise<void> {
+  try {
+    const response = await fetch(`${BASE_URL}/users`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(changes)
+    });
+
+    if (!response.ok) {
+      throw new Error("Post request failed.");
+    }
+  } catch (error: any) {
+    throw new Error(error.message || "An unexpected error occurred.");
+  }
+}

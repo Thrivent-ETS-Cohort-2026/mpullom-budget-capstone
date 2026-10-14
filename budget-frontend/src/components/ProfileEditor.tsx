@@ -1,7 +1,7 @@
 'use client'
 import { useState } from "react";
 import { usePathname } from 'next/navigation';
-import { createUser } from '@/lib/api';
+import { createUser, editUser } from '@/lib/api';
 
 interface ProfileEditorProps {
     onSwitchToLogin?: () => void;
@@ -16,7 +16,7 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
     const pathname = usePathname();
 
     async function handleSignUp() {
-        if (pathname === '/' || pathname.startsWith('/dashboard')) {
+        if (pathname === '/') {
             await createUser({
                 firstName: firstNameInput,
                 lastName: lastNameInput,
@@ -30,9 +30,23 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
         }
     }
 
+    async function handleEdit() {
+        if (pathname.startsWith('/dashboard')) {
+            await editUser({
+                firstName: firstNameInput,
+                lastName: lastNameInput,
+                email: emailInput,
+                phoneNumber: phoneNumberInput,
+                password: passInput
+            });
+        } else {
+            console.log("Skipping edit based on pathname:", pathname);
+        }
+    }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            
+
             <div className="relative w-full max-w-xl max-h-[85vh] overflow-y-auto p-6 bg-sky-400 rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-4">
 
                 {pathname?.startsWith('/dashboard') && (
@@ -104,7 +118,9 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                     />
                 </div>
 
-                <div className="flex gap-4 pt-2">
+
+
+                {pathname == "/" && (<div className="flex gap-4 pt-2">
                     <button
                         type="button"
                         className="flex-1 py-2.5 px-4 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-800 transition"
@@ -112,8 +128,17 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                     >
                         Accept
                     </button>
-                </div>
+                </div>)}
 
+                {pathname.startsWith('/dashboard') && (<div className="flex gap-4 pt-2">
+                    <button
+                        type="button"
+                        className="flex-1 py-2.5 px-4 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-800 transition"
+                        onClick={handleEdit}
+                    >
+                        Accept Changes
+                    </button>
+                </div>)}
             </div>
         </div>
     );

@@ -32,11 +32,14 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "token", nullable = false)
+    private String token;
+
     public User() {
 
     }
 
-    public User(String firstName, String lastName, String email, String phoneNumber, String password) {
+    public User(String firstName, String lastName, String email, String phoneNumber, String password, String token) {
 
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalArgumentException("First name cannot be null or empty.");
@@ -58,11 +61,16 @@ public class User {
             throw new IllegalArgumentException("Password cannot be null or empty.");
         }
 
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Password cannot be null or empty.");
+        }
+
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.password = password;
+        this.token = token;
     }
 
     public Long getId() {
@@ -111,5 +119,13 @@ public class User {
 
     public void setPassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

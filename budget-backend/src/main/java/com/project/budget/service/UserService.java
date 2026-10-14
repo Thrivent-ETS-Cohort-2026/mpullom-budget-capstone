@@ -1,7 +1,7 @@
 package com.project.budget.service;
 
-
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,12 +26,14 @@ public class UserService {
 
     @Transactional
     public User createUser(UserRequest newUser) {
+        String uniqueToken = UUID.randomUUID().toString();
         User user = new User(
                 newUser.firstName(),
                 newUser.lastName(),
                 newUser.email(),
                 newUser.phoneNumber(),
-                newUser.password());
+                newUser.password(),
+                uniqueToken);
 
         return users.save(user);
     }
@@ -85,7 +87,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User getUserByEmail(String email){
+    public User getUserByEmail(String email) {
         return users.findUserByEmail(email);
     }
 
