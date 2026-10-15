@@ -38,6 +38,10 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
     async function handleEdit() {
         if (isEditing) {
             if ((currentUser != null) && budget != null) {
+                if (!description.endsWith(' Jet')) {
+                    setDescription(description + ' Jet')
+                }
+
                 await updateBudget(currentUser.token,
                     {
                         id: budget.id,
@@ -72,14 +76,17 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
             }`}>
             <div className="flex justify-between items-center w-full">
                 <div className="flex flex-col gap-0.5">
-                    <input
-                        type="text"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        disabled={!isEditing}
-                        className={`font-semibold text-base bg-transparent border-2 rounded px-1 transition-colors ${isEditing ? "border-white bg-sky-700 text-white" : "border-sky-800 cursor-default"
-                            }`}
-                    />
+                    <div>
+                        <input
+                            type="text"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            disabled={!isEditing}
+                            className={`font-semibold text-base bg-transparent border-2 rounded px-1 transition-colors ${isEditing ? "border-white bg-sky-700 text-white" : "border-sky-800 cursor-default"
+                                }`}
+                        />
+                    </div>
+
                     <div className="flex items-center gap-1 text-xs mt-0.5">
                         <span className="font-bold">$</span>
                         <input
