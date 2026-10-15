@@ -1,8 +1,6 @@
 package com.project.budget.service;
 
 import com.project.budget.dto.BudgetRequest;
-import com.project.budget.model.Account;
-import com.project.budget.model.AccountStatus;
 import com.project.budget.model.Budget;
 import com.project.budget.model.User;
 import com.project.budget.repository.BudgetRepository;

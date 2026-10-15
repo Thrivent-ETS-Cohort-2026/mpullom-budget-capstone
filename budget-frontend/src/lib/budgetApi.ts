@@ -17,3 +17,21 @@ export async function fetchBudgets(token: string): Promise<BudgetType[]> {
 
   return response.json();
 }
+export async function updateBudget(token: string, changes: BudgetType): Promise<void> {
+  try {
+    const response = await fetch(`${BASE_URL}/${changes.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(changes)
+    });
+
+    if (!response.ok) {
+      throw new Error("Update request failed.");
+    }
+  } catch (error: any) {
+    throw new Error(error.message || "An unexpected error occurred.");
+  }
+}

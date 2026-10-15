@@ -1,7 +1,7 @@
 'use client'
 import { useContext, useState } from "react";
 import { usePathname } from 'next/navigation';
-import { createUser, editUser } from '@/lib/userApi';
+import { createUser, updateUser } from '@/lib/userApi';
 import { AuthContext } from "@/context/AuthContext";
 
 interface ProfileEditorProps {
@@ -39,7 +39,7 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
         }
         if (pathname.startsWith('/dashboard')) {
             if (currentUser != null) {
-                await editUser({
+                await updateUser({
                     firstName: firstNameInput,
                     lastName: lastNameInput,
                     email: emailInput,
