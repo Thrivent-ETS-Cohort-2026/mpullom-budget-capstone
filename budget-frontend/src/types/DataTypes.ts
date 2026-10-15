@@ -41,7 +41,7 @@ export type TargetPeriod = "MONTHLY" | "WEEKLY" | "YEARLY";
 
 export interface BudgetType {
   id: number;
-  memberId: number;
+  user: User;
   description: string;
   targetPeriod: TargetPeriod;
   currentAmount: number;

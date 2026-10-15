@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { BudgetType, TargetPeriod } from "@/types/DataTypes";
+import { updateBudget } from "@/lib/budgetApi";
+import { AuthContext } from "@/context/AuthContext";
 
 export default function BudgetCard({ budget }: { budget: BudgetType }) {
     if (!budget) return null;
@@ -10,14 +12,46 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
     const [maxAmount, setMaxAmount] = useState(budget.maxAmount ?? 1);
     const [targetPeriod, setTargetPeriod] = useState<TargetPeriod>(budget.targetPeriod);
     const TARGET_PERIODS = ["WEEKLY", "MONTHLY", "YEARLY"] as const;
+    const { currentUser } = useContext(AuthContext);
 
     function handleEnable() { }
     function handleSummary() { }
-    function handleWithdraw() { }
+    async function handleWithdraw() {
+        if ((currentUser != null) && budget != null) {
+            await updateBudget(currentUser.token,
+                {
+                    id: budget.id,
+                    user: budget.user,
+                    description: budget.description,
+                    enabled: budget.enabled,
+                    currentAmount: budget.currentAmount,
+                    maxAmount: budget.maxAmount,
+                    targetPeriod: budget.targetPeriod
+                });
+        }
+        else {
+            console.log("Null values: update was rejected")
+        }
 
-    function handleEdit() {
+    }
+
+    async function handleEdit() {
         if (isEditing) {
-            console.log("Accepted changes:", { description, currentAmount, maxAmount, targetPeriod });
+            if ((currentUser != null) && budget != null) {
+                await updateBudget(currentUser.token,
+                    {
+                        id: budget.id,
+                        user: budget.user,
+                        description: description,
+                        enabled: budget.enabled,
+                        currentAmount: currentAmount,
+                        maxAmount: maxAmount,
+                        targetPeriod: targetPeriod
+                    });
+            }
+            else {
+                console.log("Null values: update was rejected")
+            }
         }
         setIsEditing(!isEditing);
     }
@@ -33,8 +67,8 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
 
     return (
         <div className={`w-full p-3 border rounded-lg shadow-sm flex flex-col gap-2 transition-colors ${budget.enabled
-                ? "bg-sky-600 text-slate-200"
-                : "bg-slate-200 text-sky-600 border-slate-300"
+            ? "bg-sky-600 text-slate-200"
+            : "bg-slate-200 text-sky-600 border-slate-300"
             }`}>
             <div className="flex justify-between items-center w-full">
                 <div className="flex flex-col gap-0.5">
@@ -50,21 +84,20 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                         <span className="font-bold">$</span>
                         <input
                             type="number"
-                            value={currentAmount}
-                            onChange={(e) => setCurrentAmount(Number(e.target.value))}
+                            value={maxAmount}
+                            onChange={(e) => setMaxAmount(Number(e.target.value))}
                             disabled={!isEditing}
                             style={{ width: `${Math.max(currentAmount.toString().length + 2, 4)}ch` }}
                             className={`bg-transparent border-2 rounded px-1 font-bold transition-colors ${isEditing ? "border-white bg-sky-700 text-white" : "border-sky-800 cursor-default"
                                 }`}
                         />
                         <span className="text-sky-200">/</span>
-<select
+                        <select
                             value={targetPeriod}
                             onChange={(e) => setTargetPeriod(e.target.value as TargetPeriod)}
                             disabled={!isEditing}
-                            className={`bg-transparent border-2 rounded px-1 text-xs transition-colors ${
-                                isEditing ? "border-white bg-sky-700 text-white cursor-pointer" : "border-sky-800 cursor-default appearance-none"
-                            }`}
+                            className={`bg-transparent border-2 rounded px-1 text-xs transition-colors ${isEditing ? "border-white bg-sky-700 text-white cursor-pointer" : "border-sky-800 cursor-default appearance-none"
+                                }`}
                         >
                             {Object.values(TARGET_PERIODS).map((period) => (
                                 <option key={String(period)} value={period as string} className="bg-sky-700 text-white">
@@ -76,26 +109,15 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                 </div>
 
                 <div className={`flex items-center gap-1 text-xl font-extrabold mr-6 ${textColor}`}>
-                    <span>$</span>
-                    <input
-                        type="number"
-                        value={currentAmount}
-                        onChange={(e) => setCurrentAmount(Number(e.target.value))}
-                        disabled={!isEditing}
-                        style={{ width: `${Math.max(currentAmount.toString().length + 2, 4)}ch` }}
-                        className={`bg-transparent border-2 rounded px-1 text-right font-extrabold transition-colors ${isEditing ? "border-white bg-sky-700 text-white" : "border-sky-800 cursor-default"
-                            }`}
-                    />
-                    <span>/ $</span>
-                    <input
-                        type="number"
-                        value={maxAmount}
-                        onChange={(e) => setMaxAmount(Number(e.target.value))}
-                        disabled={!isEditing}
-                        style={{ width: `${Math.max(maxAmount.toString().length + 2, 4)}ch` }}
-                        className={`bg-transparent border-2 rounded px-1 font-extrabold transition-colors ${isEditing ? "border-white bg-sky-700 text-white" : "border-sky-800 cursor-default"
-                            }`}
-                    />
+                    <div className={`bg-transparent border-transparent rounded px-1 text-right font-extrabold transition-colors`}>
+                        ${Number(currentAmount).toFixed(2)}
+                    </div>
+                    <div>
+                        /
+                    </div>
+                    <div className={`bg-transparent border-transparent rounded px-1 text-right font-extrabold transition-colors`}>
+                        ${Number(maxAmount).toFixed(2)}
+                    </div>
                 </div>
             </div>
 
@@ -124,8 +146,8 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                 <button
                     onClick={handleEdit}
                     className={`px-3 py-1 text-xs font-medium rounded text-white transition-colors mr-6 ${isEditing
-                            ? "bg-emerald-600 hover:bg-emerald-700"
-                            : "bg-sky-700 hover:bg-sky-800"
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-sky-700 hover:bg-sky-800"
                         }`}
                 >
                     {isEditing ? "Accept Changes" : "Edit"}
