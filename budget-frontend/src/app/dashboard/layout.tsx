@@ -9,7 +9,7 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const [editProfile, setEditProfile] = useState(true);
+    const [editProfile, setEditProfile] = useState(false);
     const { currentUser } = useContext(AuthContext);
     const router = useRouter();
     const pathname = usePathname();

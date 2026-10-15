@@ -1,4 +1,4 @@
-import { Budget, User, UserRequest } from "@/types/DataTypes";
+import { BudgetType, User, UserRequest } from "@/types/DataTypes";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
@@ -55,7 +55,10 @@ export async function editUser(changes: UserRequest, token: string): Promise<voi
     console.log(changeRequest)
     const response = await fetch(`${BASE_URL}/users`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(changeRequest)
     });
 
@@ -67,15 +70,18 @@ export async function editUser(changes: UserRequest, token: string): Promise<voi
   }
 }
 
-async function fetchBudgets(token: string): Promise<Budget[] | null> {
-  try {
-    const response = await fetch("http://localhost:3002/");
-    if (!response.ok) throw new Error("Response failed.");
+export async function fetchBudgets(token: string): Promise<BudgetType[]> {
+  const response = await fetch(`${BASE_URL}/budgets`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  });
 
-    const data: Budget[] = await response.json();
-    return data
-  } catch (error) {
-    console.error("Failed to load events:", error);
+  if (!response.ok) {
+    throw new Error("Failed to fetch budgets");
   }
-  return null
+
+  return response.json();
 }

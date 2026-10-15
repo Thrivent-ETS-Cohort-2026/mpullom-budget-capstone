@@ -2,6 +2,8 @@ package com.project.budget.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,8 +26,15 @@ public class Budget {
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "target_period", nullable = false)
-    private String targetPeriod;
+    private TargetPeriod targetPeriod;
+
+    @Column(name = "current_amount", nullable = false)
+    private Double currentAmount;
+
+    @Column(name = "max_amount", nullable = false)
+    private Double maxAmount;
 
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;
@@ -33,15 +42,12 @@ public class Budget {
     public Budget() {
     }
 
-    public Budget(User user, String description, String targetPeriod, Boolean enabled) {
+    public Budget(User user, String description, TargetPeriod targetPeriod, Double currentAmount, Double maxAmount, Boolean enabled) {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null.");
         }
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("Description cannot be null or empty.");
-        }
-        if (targetPeriod == null || targetPeriod.isBlank()) {
-            throw new IllegalArgumentException("Target period cannot be null or empty.");
         }
         if (enabled == null) {
             throw new IllegalArgumentException("Enabled status cannot be null.");
@@ -50,6 +56,8 @@ public class Budget {
         this.user = user;
         this.description = description;
         this.targetPeriod = targetPeriod;
+        this.currentAmount = currentAmount;
+        this.maxAmount = maxAmount;
         this.enabled = enabled;
     }
 
@@ -77,11 +85,11 @@ public class Budget {
         this.description = description;
     }
 
-    public String getTargetPeriod() {
+    public TargetPeriod getTargetPeriod() {
         return targetPeriod;
     }
 
-    public void setTargetPeriod(String targetPeriod) {
+    public void setTargetPeriod(TargetPeriod targetPeriod) {
         this.targetPeriod = targetPeriod;
     }
 

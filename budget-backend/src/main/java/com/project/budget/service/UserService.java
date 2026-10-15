@@ -97,6 +97,14 @@ public class UserService {
         return foundUser;
     }
 
+    @Transactional
+    public User getUserByToken(String token) {
+        User user = users.findUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User not found"));
+        return user;
+    }
+
 @Transactional
     public User updateUserByToken(String token, UserRequest userUpdates) {
         User user = users.findUserByToken(token)

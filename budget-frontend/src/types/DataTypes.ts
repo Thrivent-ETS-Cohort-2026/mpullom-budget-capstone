@@ -37,10 +37,14 @@ export interface Transaction {
   transaction_type: string;
 }
 
-export interface Budget {
+export type TargetPeriod = "MONTHLY" | "WEEKLY" | "YEARLY";
+
+export interface BudgetType {
   id: number;
-  member_id: number;
+  memberId: number;
   description: string;
-  target_period: string;
+  targetPeriod: TargetPeriod;
+  currentAmount: number;
+  maxAmount: number;
   enabled: boolean;
 }
