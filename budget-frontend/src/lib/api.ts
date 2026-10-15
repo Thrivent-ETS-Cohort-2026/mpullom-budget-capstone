@@ -1,4 +1,4 @@
-import { User, UserRequest } from "@/types/DataTypes";
+import { Budget, User, UserRequest } from "@/types/DataTypes";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
@@ -65,4 +65,17 @@ export async function editUser(changes: UserRequest, token: string): Promise<voi
   } catch (error: any) {
     throw new Error(error.message || "An unexpected error occurred.");
   }
+}
+
+async function fetchBudgets(token: string): Promise<Budget[] | null> {
+  try {
+    const response = await fetch("http://localhost:3002/");
+    if (!response.ok) throw new Error("Response failed.");
+
+    const data: Budget[] = await response.json();
+    return data
+  } catch (error) {
+    console.error("Failed to load events:", error);
+  }
+  return null
 }
