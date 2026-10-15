@@ -31,11 +31,11 @@ useEffect(() => {
         return <main className="p-4">Loading budgets...</main>;
     }
 
-    return (
-        <main className="p-4 max-w-2xl">
+return (
+        <main className="p-4 w-full">
             <h1 className="w-full text-2xl font-bold mb-4">Budgeting</h1>
 
-            <div className="flex flex-col gap-3">
+            <div className="w-full flex flex-col gap-3 items-stretch">
                 {budgets.length === 0 ? (
                     <p className="text-slate-600 font-medium">No active budgets found.</p>
                 ) : (
