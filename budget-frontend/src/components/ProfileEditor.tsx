@@ -1,7 +1,7 @@
 'use client'
 import { useContext, useState } from "react";
 import { usePathname } from 'next/navigation';
-import { createUser, editUser } from '@/lib/api';
+import { createUser, editUser } from '@/lib/userApi';
 import { AuthContext } from "@/context/AuthContext";
 
 interface ProfileEditorProps {

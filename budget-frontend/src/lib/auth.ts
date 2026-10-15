@@ -1,5 +1,5 @@
 import { User } from "@/types/DataTypes";
-import { fetchUser } from "./api";
+import { fetchUser } from "./userApi";
 
 export async function validatePassword(email: string, password: string): Promise<User|null> {
     try {

@@ -69,19 +69,3 @@ export async function editUser(changes: UserRequest, token: string): Promise<voi
     throw new Error(error.message || "An unexpected error occurred.");
   }
 }
-
-export async function fetchBudgets(token: string): Promise<BudgetType[]> {
-  const response = await fetch(`${BASE_URL}/budgets`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch budgets");
-  }
-
-  return response.json();
-}

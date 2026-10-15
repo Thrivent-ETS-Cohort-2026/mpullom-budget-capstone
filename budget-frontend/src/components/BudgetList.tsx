@@ -3,7 +3,7 @@
 import { useState, useEffect, useContext } from "react";
 import { BudgetType } from "@/types/DataTypes";
 import BudgetCard from "./BudgetCard";
-import { fetchBudgets } from "@/lib/api";
+import { fetchBudgets } from "@/lib/budgetApi";
 import { AuthContext } from "@/context/AuthContext";
 
 export default function BudgetList() {
@@ -11,15 +11,14 @@ export default function BudgetList() {
     const [loading, setLoading] = useState<boolean>(true);
     const { currentUser } = useContext(AuthContext);
 
-
-useEffect(() => {
+    useEffect(() => {
         async function loadBudgets() {
             if (currentUser != null) {
                 const data = await fetchBudgets(currentUser?.token);
-                setBudgets(data)
+                setBudgets(data);
                 setLoading(false);
             } else {
-                console.log("Token was null")
+                console.log("Token was null");
                 setLoading(false);
             }
         }
@@ -27,13 +26,25 @@ useEffect(() => {
         loadBudgets();
     }, [currentUser]);
 
+    const handleCreateBudget = () => {
+        console.log("Create budget clicked");
+    };
+
     if (loading) {
         return <main className="p-4">Loading budgets...</main>;
     }
 
-return (
+    return (
         <main className="p-4 w-full">
-            <h1 className="w-full text-2xl font-bold mb-4">Budgeting</h1>
+            <div className="flex justify-between items-center w-full mb-4">
+                <h1 className="text-2xl font-bold">Budgeting</h1>
+                <button 
+                    onClick={handleCreateBudget}
+                    className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow transition-colors"
+                >
+                    Create Budget
+                </button>
+            </div>
 
             <div className="w-full flex flex-col gap-3 items-stretch">
                 {budgets.length === 0 ? (
