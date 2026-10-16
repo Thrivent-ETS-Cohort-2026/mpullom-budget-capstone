@@ -73,15 +73,8 @@ export default function AccountCard({ account }: { account: Account }) {
             <div className="flex justify-between items-center w-full">
                 <div className="flex flex-col gap-0.5">
                     <div>
-                        <select
-                            value={accountType}
-                            onChange={(e) => setAccountType(e.target.value as AccountType)}
-                            className={`font-semibold text-base bg-transparent border-2 rounded px-1 transition-colors 
-                                border-sky-800 cursor-default appearance-none`
-                            }
-                        >
-                            {account.accountType + "Bud"}
-                        </select>
+
+                        {account.accountType + " Bud " + account.accountNumber}
                     </div>
                 </div>
 
