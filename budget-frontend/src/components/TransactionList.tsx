@@ -1,39 +1,140 @@
 'use client'
 
 import { useState, useEffect, useContext } from "react";
-import { Transaction } from "@/types/DataTypes";
+import { useRouter, usePathname } from "next/navigation";
+import { Transaction, BudgetType, Account, TransactionType } from "@/types/DataTypes";
 import { AuthContext } from "@/context/AuthContext";
+import { getTransactions, getBudgets, createTransaction } from "@/lib/transactionApi";
+import { fetchAccounts } from "@/lib/accountApi";
 import TransactionCard from "./TransactionCard";
 
 export default function TransactionList() {
+    const router = useRouter();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+
+    const [fromDate, setFromDate] = useState<string>("");
+    const [toDate, setToDate] = useState<string>("");
+
+    const [submittedFrom, setSubmittedFrom] = useState<string>("");
+    const [submittedTo, setSubmittedTo] = useState<string>("");
+
+    const [isCreating, setIsCreating] = useState<boolean>(false);
+    const [budgets, setBudgets] = useState<BudgetType[]>([]);
+    const [accounts, setAccounts] = useState<Account[]>([]);
+
+    const [budgetId, setBudgetId] = useState<number>(0);
+    const [accountNumber, setAccountNumber] = useState<number>(0);
+    const [transactionType, setTransactionType] = useState<TransactionType>(TransactionType.ACCOUNT_DEPOSIT);
+    const [amount, setAmount] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [recurrence, setRecurrence] = useState<boolean>(false);
+    
+    const [transactionDate, setTransactionDate] = useState<string>("");
+    const [transactionTime, setTransactionTime] = useState<string>("");
+
     const { currentUser } = useContext(AuthContext);
 
+    async function fetchTransactionsList() {
+        if (!currentUser) return;
+        try {
+            const data = await getTransactions(currentUser.token, submittedFrom, submittedTo);
+            setTransactions(data);
+        } catch (err) {
+            console.error("Failed to fetch transactions:", err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
-        async function loadTransactions() {
-            if (currentUser != null) {
+        if (currentUser != null) {
+            fetchTransactionsList();
+        } else {
+            setLoading(false);
+        }
+    }, [currentUser, submittedFrom, submittedTo]);
+
+    useEffect(() => {
+        async function loadCreationData() {
+            if (isCreating && currentUser) {
                 try {
-                    const response = await fetch("http://localhost:8080/api/transactions", {
-                        headers: {
-                            "Authorization": `Bearer ${currentUser.token}`
-                        }
-                    });
-                    const data = await response.json();
-                    setTransactions(data);
+                    const [budgetsData, accountsData] = await Promise.all([
+                        getBudgets(currentUser.token),
+                        fetchAccounts(currentUser.token)
+                    ]);
+                    setBudgets(budgetsData);
+                    setAccounts(accountsData);
+
+                    if (accountsData.length > 0 && accountNumber === 0) {
+                        setAccountNumber(accountsData[0].accountNumber);
+                    }
                 } catch (err) {
-                    console.error("Failed to fetch transactions:", err);
-                } finally {
-                    setLoading(false);
+                    console.error("Failed to load creation data:", err);
                 }
-            } else {
-                console.log("Token was null");
-                setLoading(false);
             }
         }
 
-        loadTransactions();
-    }, [currentUser]);
+        loadCreationData();
+    }, [isCreating, currentUser]);
+
+    function handleSearchClick(e: React.FormEvent) {
+        e.preventDefault();
+        setSubmittedFrom(fromDate);
+        setSubmittedTo(toDate);
+    }
+
+    async function handleFormSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        if (!budgetId || budgetId === 0) {
+            alert("Please select a valid budget.");
+            return;
+        }
+
+        if (transactionType !== TransactionType.BUDGET_WITHDRAWL && (!accountNumber || accountNumber === 0)) {
+            alert("Please select a valid account.");
+            return;
+        }
+
+        try {
+            let formattedTimestamp: string | undefined = undefined;
+            if (transactionDate) {
+                const timePart = transactionTime ? (transactionTime.length === 5 ? `${transactionTime}:00` : transactionTime) : "00:00:00";
+                formattedTimestamp = `${transactionDate}T${timePart}`;
+            }
+
+            const transactionData: any = {
+                budget: { id: Number(budgetId) },
+                transactionType,
+                amount: parseFloat(amount) || 0,
+                recurrence,
+                description: description || "",
+                timestamp: formattedTimestamp
+            };
+
+            if (transactionType !== TransactionType.BUDGET_WITHDRAWL) {
+                transactionData.account = { accountNumber: Number(accountNumber) };
+            }
+
+            await createTransaction(currentUser.token, transactionData);
+
+            setIsCreating(false);
+            setAmount("");
+            setDescription("");
+            setRecurrence(false);
+            setBudgetId(0);
+            setAccountNumber(accounts.length > 0 ? accounts[0].accountNumber : 0);
+            setTransactionDate("");
+            setTransactionTime("");
+
+            await fetchTransactionsList();
+        } catch (err) {
+            console.error("Failed to create transaction:", err);
+            alert("Failed to create transaction. Check if the budget is active and funds are sufficient.");
+        }
+    }
 
     if (loading) {
         return <main className="p-4">Loading transactions...</main>;
@@ -43,15 +144,171 @@ export default function TransactionList() {
         <main className="p-4 w-full">
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Transactions</h1>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setIsCreating(!isCreating)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-sm font-medium rounded text-white transition-colors"
+                    >
+                        {isCreating ? "Cancel" : "Create Transaction"}
+                    </button>
+                    <button
+                        onClick={() => router.back()}
+                        className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-sm font-medium rounded text-white transition-colors"
+                    >
+                        Back
+                    </button>
+                </div>
             </div>
+
+            {isCreating && (
+                <form onSubmit={handleFormSubmit} className="mb-6 p-4 border rounded-lg bg-sky-800 text-slate-100 flex flex-col gap-3">
+                    <h2 className="text-lg font-semibold">New Transaction</h2>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Transaction Type</label>
+                        <select
+                            value={transactionType}
+                            onChange={(e) => setTransactionType(e.target.value as TransactionType)}
+                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                        >
+                            <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
+                            <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
+                            <option value={TransactionType.BUDGET_TRANSFER}>BUDGET_TRANSFER</option>
+                            <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
+                        </select>
+                    </div>
+
+                    {transactionType !== TransactionType.BUDGET_WITHDRAWL && (
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium">Account</label>
+                            <select
+                                value={accountNumber}
+                                onChange={(e) => setAccountNumber(Number(e.target.value))}
+                                className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                            >
+                                <option value={0} disabled>Select account</option>
+                                {accounts.map(acc => (
+                                    <option key={acc.accountNumber} value={acc.accountNumber}>
+                                        {acc.accountType} (#{acc.accountNumber}) - ${acc.balance?.toFixed(2)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Budget</label>
+                        <select
+                            value={budgetId}
+                            onChange={(e) => setBudgetId(Number(e.target.value))}
+                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                        >
+                            <option value={0} disabled>Select budget</option>
+                            {budgets.map(b => (
+                                <option key={b.id} value={b.id}>
+                                    {b.description || `Budget #${b.id}`}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Date & Time</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="date"
+                                value={transactionDate}
+                                onChange={(e) => setTransactionDate(e.target.value)}
+                                className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white text-sm flex-1"
+                            />
+                            <input
+                                type="time"
+                                value={transactionTime}
+                                onChange={(e) => setTransactionTime(e.target.value)}
+                                className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white text-sm flex-1"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Amount</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                            placeholder="0.00"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Description</label>
+                        <input
+                            type="text"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                            placeholder="Description"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 my-1">
+                        <input
+                            type="checkbox"
+                            id="create-recurrence"
+                            checked={recurrence}
+                            onChange={(e) => setRecurrence(e.target.checked)}
+                            className="w-4 h-4"
+                        />
+                        <label htmlFor="create-recurrence" className="text-xs select-none">Recurring</label>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="mt-2 py-2 bg-emerald-600 hover:bg-emerald-700 font-medium rounded text-white transition-colors"
+                    >
+                        Save Transaction
+                    </button>
+                </form>
+            )}
+
+            <form onSubmit={handleSearchClick} className="flex gap-4 mb-4 items-end">
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs text-slate-600 font-medium">From Date</label>
+                    <input
+                        type="date"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                        className="px-2 py-1 text-sm rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs text-slate-600 font-medium">To Date</label>
+                    <input
+                        type="date"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                        className="px-2 py-1 text-sm rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-sm font-medium rounded text-white transition-colors shadow-sm"
+                >
+                    Search
+                </button>
+            </form>
 
             <div className="w-full flex flex-col gap-3 items-stretch">
                 {transactions.length === 0 ? (
                     <p className="text-slate-600 font-medium">No transactions found.</p>
                 ) : (
-                    transactions.map((transaction) => (
+                    transactions.map((transaction, index) => (
                         <TransactionCard
-                            key={transaction.transactionId}
+                            key={transaction.transactionId ? `${transaction.transactionId}-${index}` : `fallback-key-${index}`}
                             transaction={transaction}
                         />
                     ))

@@ -1,8 +1,6 @@
 package com.project.budget.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.project.budget.model.Account;
-import com.project.budget.model.Budget;
 import com.project.budget.model.TransactionType;
 
 import jakarta.validation.constraints.NotBlank;
@@ -13,10 +11,10 @@ import java.time.LocalDateTime;
 public record TransactionRequest(
 
     @NotNull(message = "Account is required")
-    Account account,
+    AccountRef account,
 
     @NotNull(message = "Budget is required")
-    Budget budget,
+    BudgetRef budget,
 
     @NotNull(message = "Transaction type is required")
     TransactionType transactionType,
@@ -38,6 +36,19 @@ public record TransactionRequest(
     public TransactionRequest {
         if (timestamp == null) {
             timestamp = LocalDateTime.now();
+        }
+    }
+
+    
+    public record AccountRef(Long accountNumber) {
+        public Long getAccountNumber() {
+            return accountNumber;
+        }
+    }
+
+    public record BudgetRef(Long id) {
+        public Long getId() {
+            return id;
         }
     }
 }

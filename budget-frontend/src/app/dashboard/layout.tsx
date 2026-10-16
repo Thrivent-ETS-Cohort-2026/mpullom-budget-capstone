@@ -14,6 +14,9 @@ export default function DashboardLayout({
     const router = useRouter();
     const pathname = usePathname();
 
+    const isTransactionsPath = pathname?.endsWith('/transaction') || pathname?.endsWith('/transactions');
+    const shouldBlur = editProfile || isTransactionsPath;
+
     function toggleProfEditor() {
         setEditProfile(prev => !prev);
     }
@@ -26,8 +29,8 @@ export default function DashboardLayout({
                 </div>
             )}
 
-            <div className={`min-h-screen flex flex-col bg-slate-900 text-slate-100 transition-all duration-300 ${editProfile ? "blur-sm pointer-events-none" : ""}`}>
-                <header className="border-b border-slate-700 bg-slate-800 px-8 py-4 flex flex-col gap-4">
+            <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100">
+                <header className={`border-b border-slate-700 bg-slate-800 px-8 py-4 flex flex-col gap-4 transition-all duration-300 ${shouldBlur ? "blur-sm pointer-events-none select-none" : ""}`}>
 
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-semibold tracking-tight text-white">

@@ -1,6 +1,9 @@
+'use client'
+
 import { useContext, useState, useEffect } from "react";
 import { Transaction, BudgetType } from "@/types/DataTypes";
 import { AuthContext } from "@/context/AuthContext";
+import { getBudgets, deleteTransaction, updateTransaction } from "@/lib/transactionApi";
 
 interface TransactionCardProps {
     transaction: Transaction;
@@ -20,12 +23,7 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
 
     useEffect(() => {
         if (isEditing && currentUser) {
-            fetch("http://localhost:8080/api/budgets", {
-                headers: {
-                    "Authorization": `Bearer ${currentUser.token}`
-                }
-            })
-                .then(res => res.json())
+            getBudgets(currentUser.token)
                 .then(data => setBudgets(data))
                 .catch(err => console.error("Failed to fetch budgets:", err));
         }
@@ -34,12 +32,7 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
     async function handleDelete() {
         if (currentUser && transaction.transactionId) {
             try {
-                await fetch(`http://localhost:8080/api/transactions/${transaction.transactionId}`, {
-                    method: "DELETE",
-                    headers: {
-                        "Authorization": `Bearer ${currentUser.token}`
-                    }
-                });
+                await deleteTransaction(currentUser.token, transaction.transactionId);
                 window.location.reload();
             } catch (err) {
                 console.error("Failed to delete transaction:", err);
@@ -58,14 +51,7 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
                     budget: budgets.find(b => b.id === selectedBudgetId) || transaction.budget
                 };
 
-                await fetch(`http://localhost:8080/api/transactions/${transaction.transactionId}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${currentUser.token}`
-                    },
-                    body: JSON.stringify(updatedTransaction)
-                });
+                await updateTransaction(currentUser.token, transaction.transactionId, updatedTransaction);
 
                 setIsEditing(false);
                 window.location.reload();

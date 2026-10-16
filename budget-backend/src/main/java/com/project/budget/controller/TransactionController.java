@@ -41,7 +41,7 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity<Transaction> createTransaction(
-            @Valid @RequestBody TransactionRequest newTransaction,
+            @RequestBody TransactionRequest newTransaction,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

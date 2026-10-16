@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import { Account } from "@/types/DataTypes";
 import { AuthContext } from "@/context/AuthContext";
 import { updateAccountBalance } from "@/lib/accountApi";
+import { useRouter } from "next/navigation";
 
 export default function AccountCard({ account }: { account: Account }) {
     if (!account) return null;
@@ -12,12 +13,9 @@ export default function AccountCard({ account }: { account: Account }) {
     const [withdrawAmount, setWithdrawAmount] = useState<string>("");
 
     const { currentUser } = useContext(AuthContext);
+    const router = useRouter();
 
     async function handleTransfer() {
-    }
-
-    function handleSummary() {
-        console.log("Viewing summary for account:", account.accountNumber);
     }
 
     async function handleBalanceChange(isDeposit: boolean) {
@@ -103,12 +101,6 @@ export default function AccountCard({ account }: { account: Account }) {
                             className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-6.5"
                         >
                             Transfer
-                        </button>
-                        <button
-                            onClick={handleSummary}
-                            className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-6.5"
-                        >
-                            Summary
                         </button>
                     </div>
                 </div>
