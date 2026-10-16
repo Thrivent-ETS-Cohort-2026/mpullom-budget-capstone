@@ -16,9 +16,14 @@ export default function AccountList() {
     useEffect(() => {
         async function loadAccounts() {
             if (currentUser != null) {
-                const data = await fetchAccounts(currentUser?.token);
-                setAccounts(data);
-                setLoading(false);
+                try {
+                    const data = await fetchAccounts(currentUser?.token);
+                    setAccounts(data);
+                } catch (err) {
+                    console.error("Failed to fetch accounts:", err);
+                } finally {
+                    setLoading(false);
+                }
             } else {
                 console.log("Token was null");
                 setLoading(false);

@@ -7,14 +7,15 @@ import { AuthContext } from "@/context/AuthContext";
 import { getTransactions, getBudgets, createTransaction } from "@/lib/transactionApi";
 import { fetchAccounts } from "@/lib/accountApi";
 import TransactionCard from "./TransactionCard";
+import CsvDownloader from "./CsvDownloader";
+import TransactionFilterFetch from "./TransactionFilterFetch";
 
 export default function TransactionList() {
     const router = useRouter();
+    const pathname = usePathname();
+
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-
-    const [fromDate, setFromDate] = useState<string>("");
-    const [toDate, setToDate] = useState<string>("");
 
     const [submittedFrom, setSubmittedFrom] = useState<string>("");
     const [submittedTo, setSubmittedTo] = useState<string>("");
@@ -34,6 +35,9 @@ export default function TransactionList() {
     const [transactionTime, setTransactionTime] = useState<string>("");
 
     const { currentUser } = useContext(AuthContext);
+
+    const isBankingRoute = pathname === '/dashboard/banking/transactions';
+    const isBudgetingRoute = pathname === '/dashboard/budgeting/transactions';
 
     async function fetchTransactionsList() {
         if (!currentUser) return;
@@ -78,8 +82,7 @@ export default function TransactionList() {
         loadCreationData();
     }, [isCreating, currentUser]);
 
-    function handleSearchClick(e: React.FormEvent) {
-        e.preventDefault();
+    function handleFilterSearch(fromDate: string, toDate: string) {
         setSubmittedFrom(fromDate);
         setSubmittedTo(toDate);
     }
@@ -145,6 +148,7 @@ export default function TransactionList() {
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Transactions</h1>
                 <div className="flex items-center gap-2">
+                    <CsvDownloader transactions={transactions} />
                     <button
                         onClick={() => setIsCreating(!isCreating)}
                         className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-sm font-medium rounded text-white transition-colors"
@@ -171,10 +175,24 @@ export default function TransactionList() {
                             onChange={(e) => setTransactionType(e.target.value as TransactionType)}
                             className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
                         >
-                            <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
-                            <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
-                            <option value={TransactionType.BUDGET_TRANSFER}>BUDGET_TRANSFER</option>
-                            <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
+                            {isBudgetingRoute ? (
+                                <>
+                                    <option value="BUDGET_DEPOSIT">BUDGET_DEPOSIT</option>
+                                    <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
+                                </>
+                            ) : isBankingRoute ? (
+                                <>
+                                    <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
+                                    <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
+                                    <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
+                                    <option value={TransactionType.BUDGET_TRANSFER}>BUDGET_TRANSFER</option>
+                                    <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
+                                </>
+                            )}
                         </select>
                     </div>
 
@@ -273,34 +291,7 @@ export default function TransactionList() {
                 </form>
             )}
 
-            <form onSubmit={handleSearchClick} className="flex gap-4 mb-4 items-end">
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs text-slate-600 font-medium">From Date</label>
-                    <input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        className="px-2 py-1 text-sm rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                    />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs text-slate-600 font-medium">To Date</label>
-                    <input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        className="px-2 py-1 text-sm rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-sm font-medium rounded text-white transition-colors shadow-sm"
-                >
-                    Search
-                </button>
-            </form>
+            <TransactionFilterFetch onSearch={handleFilterSearch} />
 
             <div className="w-full flex flex-col gap-3 items-stretch">
                 {transactions.length === 0 ? (

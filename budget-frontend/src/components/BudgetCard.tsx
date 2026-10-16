@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
-import { BudgetType, TargetPeriod } from "@/types/DataTypes";
+import { BudgetType, TargetPeriod, TransactionType } from "@/types/DataTypes";
 import { updateBudget } from "@/lib/budgetApi";
+import { createTransaction } from "@/lib/transactionApi";
 import { AuthContext } from "@/context/AuthContext";
 
 export default function BudgetCard({ budget }: { budget: BudgetType }) {
@@ -38,8 +39,6 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
         }
     }
 
-    function handleSummary() { }
-
     async function handleWithdraw() {
         if ((currentUser != null) && budget != null) {
             const amount = parseFloat(withdrawAmount);
@@ -48,21 +47,36 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                 return;
             }
 
-            const newCurrentAmount = currentAmount - amount;
+            try {
+                const transactionData = {
+                    budget: { id: budget.id },
+                    transactionType: TransactionType.BUDGET_WITHDRAWL,
+                    amount: amount,
+                    description: `Withdrawal from ${description || `Budget #${budget.id}`}`,
+                    recurrence: false
+                };
 
-            await updateBudget(currentUser.token,
-                {
-                    id: budget.id,
-                    user: budget.user,
-                    description: description,
-                    enabled: budget.enabled,
-                    currentAmount: newCurrentAmount,
-                    maxAmount: maxAmount,
-                    targetPeriod: targetPeriod
-                });
+                await createTransaction(currentUser.token, transactionData);
 
-            setCurrentAmount(newCurrentAmount);
-            setWithdrawAmount("");
+                const newCurrentAmount = currentAmount - amount;
+
+                await updateBudget(currentUser.token,
+                    {
+                        id: budget.id,
+                        user: budget.user,
+                        description: description,
+                        enabled: budget.enabled,
+                        currentAmount: newCurrentAmount,
+                        maxAmount: maxAmount,
+                        targetPeriod: targetPeriod
+                    });
+
+                setCurrentAmount(newCurrentAmount);
+                setWithdrawAmount("");
+            } catch (err) {
+                console.error("Failed to create withdrawal transaction:", err);
+                alert("Failed to process withdrawal transaction.");
+            }
         }
         else {
             console.log("Null values: update was rejected");
@@ -133,8 +147,8 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                             value={maxAmount}
                             onChange={(e) => setMaxAmount(Number(e.target.value))}
                             disabled={!isEditing}
-                            style={{ width: `${Math.max(currentAmount.toString().length + 2, 4)}ch` }}
-                            className={`bg-transparent border-2 rounded px-1 font-bold transition-colors ${isEditing ? "border-white bg-sky-700 text-white" : "border-transparent cursor-default"
+                            style={{ width: `${Math.max(maxAmount.toString().length + 4, 8)}ch` }}
+                            className={`bg-transparent border-2 rounded px-1 font-bold text-center transition-colors min-w-[80px] ${isEditing ? "border-white bg-sky-700 text-white" : "border-transparent cursor-default"
                                 }`}
                         />
                         <span className="text-sky-200">/</span>
@@ -174,12 +188,6 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                         className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-[26px]"
                     >
                         {isEnabled ? "Disable" : "Enable"}
-                    </button>
-                    <button
-                        onClick={handleSummary}
-                        className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-[26px]"
-                    >
-                        Summary
                     </button>
 
                     <div className="flex flex-col gap-1">

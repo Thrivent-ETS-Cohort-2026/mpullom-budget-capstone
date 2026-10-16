@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/navigation";
 import { BudgetType } from "@/types/DataTypes";
 import BudgetCard from "./BudgetCard";
 import { createBudget, fetchBudgets } from "@/lib/budgetApi";
 import { AuthContext } from "@/context/AuthContext";
 
 export default function BudgetList() {
+    const router = useRouter();
     const [budgets, setBudgets] = useState<BudgetType[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const { currentUser } = useContext(AuthContext);
@@ -34,11 +36,14 @@ export default function BudgetList() {
     async function handleCreateBudget() {
         if (currentUser != null) {
             await createBudget(currentUser);
-
             await loadBudgets();
         } else {
             console.log("No user is signed in");
         }
+    }
+
+    function handleTransactions() {
+        router.push('/dashboard/budgeting/transactions');
     }
 
     if (loading) {
@@ -49,12 +54,20 @@ export default function BudgetList() {
         <main className="p-4 w-full">
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Budgeting</h1>
-                <button 
-                    onClick={handleCreateBudget}
-                    className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow transition-colors"
-                >
-                    Create Budget
-                </button>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={handleTransactions}
+                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                    >
+                        Transactions
+                    </button>
+                    <button 
+                        onClick={handleCreateBudget}
+                        className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow transition-colors"
+                    >
+                        Create Budget
+                    </button>
+                </div>
             </div>
 
             <div className="w-full flex flex-col gap-3 items-stretch">

@@ -38,10 +38,8 @@ export enum TransactionType {
     ACCOUNT_WITHDRAWL = "ACCOUNT_WITHDRAWL",
     ACCOUNT_DEPOSIT = "ACCOUNT_DEPOSIT",
     BUDGET_TRANSFER = "BUDGET_TRANSFER",
-    BUDGET_WITHDRAWL = "BUDGET_WITHDRAWL",
-    WITHDRAWL = "WITHDRAWL", 
-    DEPOSIT = "DEPOSIT"
-}
+    BUDGET_WITHDRAWL = "BUDGET_WITHDRAWL"
+  }
 
 export interface Transaction {
     transactionId?: number;
