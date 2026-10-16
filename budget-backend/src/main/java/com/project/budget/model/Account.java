@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -17,8 +19,9 @@ public class Account {
     @Column(name = "account_number")
     private Long accountNumber;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type", nullable = false)
@@ -34,9 +37,9 @@ public class Account {
     public Account() {
     }
 
-    public Account(AccountType accountType, Long userId, double initialBalance, AccountStatus accountStatus) {
+    public Account(AccountType accountType, User user, double initialBalance, AccountStatus accountStatus) {
         this.accountType = accountType;
-        this.userId = userId;
+        this.user = user;
         this.balance = initialBalance;
         this.accountStatus = accountStatus;
     }
@@ -45,8 +48,8 @@ public class Account {
         return accountNumber;
     }
 
-        public Long getUserId() {
-        return this.userId;
+    public User getUserId() {
+        return this.user;
     }
 
     public AccountType getAccountType() {

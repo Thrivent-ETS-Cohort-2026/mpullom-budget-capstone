@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.budget.dto.UserRequest;
-import com.project.budget.model.Account;
 import com.project.budget.model.User;
 import com.project.budget.service.UserService;
 
@@ -67,11 +66,6 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/accounts")
-    public ResponseEntity<List<Account>> getUserAccounts(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserAccounts(id));
-    }
-
     @GetMapping("/email")
     public ResponseEntity<User> getUserByEmail(@RequestParam String email) {
         User user = userService.getUserByEmail(email);
@@ -87,6 +81,7 @@ public class UserController {
     public ResponseEntity<String> updateUserByToken(
             @RequestBody UserRequest userUpdates,
             @RequestHeader("Authorization") String authHeader) {
+                
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(401).body("Missing or invalid token format");
         }

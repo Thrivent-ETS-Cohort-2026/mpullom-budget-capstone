@@ -1,6 +1,5 @@
 import { BudgetType} from "@/types/DataTypes";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/budgets';
+const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/budgets`;
 
 export async function fetchBudgets(token: string): Promise<BudgetType[]> {
   const response = await fetch(`${BASE_URL}`, {

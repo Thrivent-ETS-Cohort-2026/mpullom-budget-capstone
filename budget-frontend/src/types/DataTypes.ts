@@ -16,11 +16,15 @@ export interface User {
   token: string;
 }
 
+export type AccountType = "CHECKING" | "SAVINGS";
+export type AccountStatus = "ACTIVE" | "CLOSED" | "SUSPENDED";
+
 export interface Account {
-  id: string;
-  member_id: number;
-  session_id: number;
+  accountNumber: string;
+  accountType: AccountType;
+  user: User;
   balance: number;
+  accountStatus : AccountStatus;
 }
 
 export interface Transfer {

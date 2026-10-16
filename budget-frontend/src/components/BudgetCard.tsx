@@ -6,6 +6,7 @@ import { AuthContext } from "@/context/AuthContext";
 export default function BudgetCard({ budget }: { budget: BudgetType }) {
     if (!budget) return null;
 
+    const [isEnabled, setIsEnabled] = useState(budget.enabled);
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(budget.description);
     const [currentAmount, setCurrentAmount] = useState(budget.currentAmount ?? 0);
@@ -14,7 +15,40 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
     const TARGET_PERIODS = ["WEEKLY", "MONTHLY", "YEARLY"] as const;
     const { currentUser } = useContext(AuthContext);
 
-    function handleEnable() { }
+    async function handleEnableToggle() {
+
+        if ((currentUser != null) && budget != null) {
+            if (isEnabled) {
+                setIsEnabled(false)
+                await updateBudget(currentUser.token,
+                    {
+                        id: budget.id,
+                        user: budget.user,
+                        description: budget.description,
+                        enabled: false,
+                        currentAmount: budget.currentAmount,
+                        maxAmount: budget.maxAmount,
+                        targetPeriod: budget.targetPeriod
+                    });
+            }
+            else {
+                setIsEnabled(true)
+                await updateBudget(currentUser.token,
+                    {
+                        id: budget.id,
+                        user: budget.user,
+                        description: budget.description,
+                        enabled: true,
+                        currentAmount: budget.currentAmount,
+                        maxAmount: budget.maxAmount,
+                        targetPeriod: budget.targetPeriod
+                    });
+            }
+        }
+        else {
+            console.log("Null values: update was rejected")
+        }
+    }
     function handleSummary() { }
     async function handleWithdraw() {
         if ((currentUser != null) && budget != null) {
@@ -70,7 +104,7 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
     }
 
     return (
-        <div className={`w-full p-3 border rounded-lg shadow-sm flex flex-col gap-2 transition-colors ${budget.enabled
+        <div className={`w-full p-3 border rounded-lg shadow-sm flex flex-col gap-2 transition-colors ${isEnabled
             ? "bg-sky-600 text-slate-200"
             : "bg-slate-200 text-sky-600 border-slate-300"
             }`}>
@@ -115,7 +149,7 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                     </div>
                 </div>
 
-                <div className={`flex items-center gap-1 text-xl font-extrabold mr-6 ${textColor}`}>
+                <div className={`flex items-center gap-1 text-2xl font-extrabold mr-6 ${textColor}`}>
                     <div className={`bg-transparent border-transparent rounded px-1 text-right font-extrabold transition-colors`}>
                         ${Number(currentAmount).toFixed(2)}
                     </div>
@@ -131,10 +165,10 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
             <div className="flex justify-between items-center mt-0.5 w-full">
                 <div className="flex gap-2">
                     <button
-                        onClick={handleEnable}
+                        onClick={handleEnableToggle}
                         className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors"
                     >
-                        Enable
+                        {isEnabled ? "Disable" : "Enable"}
                     </button>
                     <button
                         onClick={handleSummary}

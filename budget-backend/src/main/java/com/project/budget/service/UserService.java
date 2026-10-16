@@ -11,7 +11,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.project.budget.dto.UserRequest;
-import com.project.budget.model.Account;
 import com.project.budget.model.User;
 import com.project.budget.repository.UserRepository;
 
@@ -21,11 +20,9 @@ import jakarta.servlet.http.HttpServletRequest;
 public class UserService {
 
     private final UserRepository users;
-    private final AccountService accountService;
 
-    public UserService(UserRepository users, AccountService accountService) {
+    public UserService(UserRepository users) {
         this.users = users;
-        this.accountService = accountService;
     }
 
     @Transactional
@@ -83,11 +80,6 @@ public class UserService {
         User user = users.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User " + userId + " not found"));
         users.delete(user);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Account> getUserAccounts(Long userId) {
-        return accountService.getAccountsByUserId(userId);
     }
 
     @Transactional(readOnly = true)

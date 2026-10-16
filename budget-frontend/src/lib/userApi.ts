@@ -1,6 +1,6 @@
 import { User, UserRequest } from "@/types/DataTypes";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/users';
+const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users`;
 
 export async function fetchUser(email: string): Promise<User | null> {
   try {

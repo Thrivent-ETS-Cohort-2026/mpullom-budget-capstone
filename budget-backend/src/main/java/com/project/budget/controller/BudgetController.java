@@ -12,11 +12,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/budgets")
-@CrossOrigin(
-    origins = "http://localhost:3000", 
-    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE},
-    allowedHeaders = {"Authorization", "Content-Type"}
-)
+@CrossOrigin(origins = "http://localhost:3000", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT,
+        RequestMethod.DELETE }, allowedHeaders = { "Authorization", "Content-Type" })
 public class BudgetController {
 
     private final BudgetService budgetService;
@@ -30,6 +27,11 @@ public class BudgetController {
             @Valid @RequestBody BudgetRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        }
+
         String token = authHeader.substring(7);
 
         Budget createdBudget = budgetService.createBudget(token, request);
@@ -39,6 +41,11 @@ public class BudgetController {
     @GetMapping
     public ResponseEntity<List<Budget>> getBudgetsByToken(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        }
 
         String token = authHeader.substring(7);
 
@@ -51,6 +58,11 @@ public class BudgetController {
             @PathVariable Long id,
             @Valid @RequestBody BudgetRequest budgetUpdates,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        }
 
         String token = authHeader.substring(7);
 
