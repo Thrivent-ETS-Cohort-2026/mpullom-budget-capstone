@@ -26,11 +26,6 @@ export default function AccountList() {
         loadAccounts();
     }, [currentUser]);
 
-    async function handleCreateAccount() {
-        // createAccount({
-            
-        // })
-    };
 
     if (loading) {
         return <main className="p-4">Loading accounts...</main>;
@@ -40,12 +35,6 @@ export default function AccountList() {
         <main className="p-4 w-full">
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Banking</h1>
-                <button 
-                    onClick={handleCreateAccount}
-                    className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow transition-colors"
-                >
-                    Create Account
-                </button>
             </div>
 
             <div className="w-full flex flex-col gap-3 items-stretch">

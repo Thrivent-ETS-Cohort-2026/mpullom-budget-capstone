@@ -48,7 +48,7 @@ public class Account {
         return accountNumber;
     }
 
-    public User getUserId() {
+    public User getUser() {
         return this.user;
     }
 

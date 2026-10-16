@@ -2,12 +2,15 @@ package com.project.budget.service;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.project.budget.dto.AccountRequest;
 import com.project.budget.model.Account;
 import com.project.budget.model.AccountStatus;
+import com.project.budget.model.Budget;
 import com.project.budget.model.User;
 import com.project.budget.repository.AccountRepository;
 
@@ -42,9 +45,18 @@ public class AccountService {
     }
 
     @Transactional
-    public Account updateAccountStatus(Long accountNumber, AccountStatus newStatus) {
-        Account account = getAccountByNum(accountNumber);
-        account.setAccountStatus(newStatus);
+    public Account updateAccountBalance(String token, Long accountNumber, Double newBalance) {
+        Account account = accounts.findById(accountNumber)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account " + accountNumber + " not found"));
+
+        if (account.getUser().getToken() == null || !account.getUser().getToken().equals(token)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Current user is not authorized to make this call");
+        }
+
+        account.setBalance(newBalance);
         return accounts.save(account);
     }
 

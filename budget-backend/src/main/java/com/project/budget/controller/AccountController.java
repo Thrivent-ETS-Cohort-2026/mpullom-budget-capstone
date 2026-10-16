@@ -54,11 +54,19 @@ public class AccountController {
         return ResponseEntity.ok(accountService.getAccountByNum(acctNo));
     }
 
-    @PutMapping("/{acctNo}/status")
+    @PutMapping("/{acctNo}/balance")
     public ResponseEntity<Account> updateAccountStatus(
             @PathVariable Long acctNo,
-            @RequestParam AccountStatus newStatus) {
-        Account savedAccount = accountService.updateAccountStatus(acctNo, newStatus);
+            @RequestParam Double newBalance,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        }
+
+        String token = authHeader.substring(7);
+        Account savedAccount = accountService.updateAccountBalance(token, acctNo, newBalance);
         return ResponseEntity.ok(savedAccount);
     }
 

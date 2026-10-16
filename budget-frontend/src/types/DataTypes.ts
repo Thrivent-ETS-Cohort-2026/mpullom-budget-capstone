@@ -20,7 +20,7 @@ export type AccountType = "CHECKING" | "SAVINGS";
 export type AccountStatus = "ACTIVE" | "CLOSED" | "SUSPENDED";
 
 export interface Account {
-  accountNumber: string;
+  accountNumber: number;
   accountType: AccountType;
   user: User;
   balance: number;
