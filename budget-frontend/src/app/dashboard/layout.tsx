@@ -31,7 +31,7 @@ export default function DashboardLayout({
 
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-semibold tracking-tight text-white">
-                            Good morning, {currentUser?.firstName || 'User'}
+                            Good day, {currentUser?.firstName || 'User'}
                         </h1>
 
                         <div className="flex items-center gap-4">

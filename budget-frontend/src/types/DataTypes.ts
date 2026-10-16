@@ -34,11 +34,24 @@ export interface Transfer {
   receiver_account_id: number;
 }
 
+export enum TransactionType {
+    ACCOUNT_WITHDRAWL = "ACCOUNT_WITHDRAWL",
+    ACCOUNT_DEPOSIT = "ACCOUNT_DEPOSIT",
+    BUDGET_TRANSFER = "BUDGET_TRANSFER",
+    BUDGET_WITHDRAWL = "BUDGET_WITHDRAWL",
+    WITHDRAWL = "WITHDRAWL", 
+    DEPOSIT = "DEPOSIT"
+}
+
 export interface Transaction {
-  id: number;
-  account_id: number;
-  time_stamp: Date;
-  transaction_type: string;
+    transactionId?: number;
+    account?: Account;
+    budget?: BudgetType;
+    transactionType: TransactionType;
+    amount: number;
+    timestamp?: string
+    recurrence: boolean;
+    description: string;
 }
 
 export type TargetPeriod = "MONTHLY" | "WEEKLY" | "YEARLY";

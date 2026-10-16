@@ -185,7 +185,7 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                     <div className="flex flex-col gap-1">
                         <input
                             type="number"
-                            placeholder="Withdraw amount"
+                            placeholder="Amount"
                             value={withdrawAmount}
                             disabled={isEditing}
                             onChange={(e) => setWithdrawAmount(e.target.value)}
