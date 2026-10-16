@@ -3,7 +3,7 @@
 import { useState, useEffect, useContext } from "react";
 import { BudgetType } from "@/types/DataTypes";
 import BudgetCard from "./BudgetCard";
-import { fetchBudgets } from "@/lib/budgetApi";
+import { createBudget, fetchBudgets } from "@/lib/budgetApi";
 import { AuthContext } from "@/context/AuthContext";
 
 export default function BudgetList() {
@@ -11,24 +11,35 @@ export default function BudgetList() {
     const [loading, setLoading] = useState<boolean>(true);
     const { currentUser } = useContext(AuthContext);
 
-    useEffect(() => {
-        async function loadBudgets() {
-            if (currentUser != null) {
-                const data = await fetchBudgets(currentUser?.token);
+    async function loadBudgets() {
+        if (currentUser != null) {
+            try {
+                const data = await fetchBudgets(currentUser.token);
                 setBudgets(data);
-                setLoading(false);
-            } else {
-                console.log("Token was null");
+            } catch (error) {
+                console.error("Failed to fetch budgets:", error);
+            } finally {
                 setLoading(false);
             }
+        } else {
+            console.log("Token was null");
+            setLoading(false);
         }
+    }
 
+    useEffect(() => {
         loadBudgets();
     }, [currentUser]);
 
-    const handleCreateBudget = () => {
-        console.log("Create budget clicked");
-    };
+    async function handleCreateBudget() {
+        if (currentUser != null) {
+            await createBudget(currentUser);
+
+            await loadBudgets();
+        } else {
+            console.log("No user is signed in");
+        }
+    }
 
     if (loading) {
         return <main className="p-4">Loading budgets...</main>;

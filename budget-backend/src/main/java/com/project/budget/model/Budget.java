@@ -93,6 +93,22 @@ public class Budget {
         this.targetPeriod = targetPeriod;
     }
 
+    public Double getCurrentAmount() {
+        return currentAmount;
+    }
+
+    public void setCurrentAmount(Double currentAmount) {
+        this.currentAmount = currentAmount;
+    }
+
+    public Double getMaxAmount() {
+        return maxAmount;
+    }
+
+    public void setMaxAmount(Double maxAmount) {
+        this.maxAmount = maxAmount;
+    }
+
     public Boolean getEnabled() {
         return enabled;
     }

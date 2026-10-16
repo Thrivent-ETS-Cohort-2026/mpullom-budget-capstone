@@ -70,6 +70,14 @@ public class BudgetService {
             budget.setDescription(budgetUpdates.description());
         }
 
+        if (budgetUpdates.currentAmount() != null) {
+            budget.setCurrentAmount(budgetUpdates.currentAmount());
+        }
+
+        if (budgetUpdates.maxAmount() != null) {
+            budget.setMaxAmount(budgetUpdates.maxAmount());
+        }
+
         if (budgetUpdates.targetPeriod() != null) {
             budget.setTargetPeriod(budgetUpdates.targetPeriod());
         }

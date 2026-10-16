@@ -52,3 +52,12 @@ export interface BudgetType {
   maxAmount: number;
   enabled: boolean;
 }
+
+export interface BudgetRequest {
+  user: User;
+  description: string;
+  targetPeriod: TargetPeriod;
+  currentAmount: number;
+  maxAmount: number;
+  enabled: boolean;
+}
