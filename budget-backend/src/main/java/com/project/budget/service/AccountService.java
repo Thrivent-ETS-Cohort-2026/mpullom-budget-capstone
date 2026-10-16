@@ -9,8 +9,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.project.budget.dto.AccountRequest;
 import com.project.budget.model.Account;
-import com.project.budget.model.AccountStatus;
-import com.project.budget.model.Budget;
 import com.project.budget.model.User;
 import com.project.budget.repository.AccountRepository;
 

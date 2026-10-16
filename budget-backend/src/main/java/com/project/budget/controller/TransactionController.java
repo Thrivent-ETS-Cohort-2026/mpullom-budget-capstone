@@ -8,8 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,31 +32,56 @@ import jakarta.validation.Valid;
     allowedHeaders = {"Authorization", "Content-Type"}
 )
 public class TransactionController {
-    private TransactionService transactionService;
+
+    private final TransactionService transactionService;
 
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> createAccount(@Valid @RequestBody TransactionRequest newTransaction) {
-        Transaction savedTransaction = transactionService.createTransaction(newTransaction);
-        return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
+    public ResponseEntity<Transaction> createTransaction(
+            @Valid @RequestBody TransactionRequest newTransaction,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        Transaction savedTransaction = transactionService.createTransaction(token, newTransaction);
+        return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<List<Transaction>> getTransactions(
-            @RequestParam(required = false) Long accountNo,
             @RequestParam(required = false) TransactionType type,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
-            @RequestParam(required = false) Double minAmount,
-            @RequestParam(required = false) Double maxAmount
+            @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
         List<Transaction> transactions = transactionService.filterTransactions(
-                accountNo, type, fromDate, toDate, minAmount, maxAmount
+                token, type, fromDate, toDate
         );
+        return ResponseEntity.ok(transactions);
+    }
+
+    @GetMapping("/account/{accountNumber}")
+    public ResponseEntity<List<Transaction>> getTransactionsByAccount(
+            @PathVariable Long accountNumber,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        List<Transaction> transactions = transactionService.getTransactionsByAccountNum(token, accountNumber);
         return ResponseEntity.ok(transactions);
     }
 }

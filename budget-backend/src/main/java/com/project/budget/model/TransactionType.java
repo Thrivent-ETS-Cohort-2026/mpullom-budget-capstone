@@ -1,6 +1,8 @@
 package com.project.budget.model;
 
 public enum TransactionType {
-    DEPOSIT,
-    WITHDRAWL
+    ACCOUNT_DEPOSIT,
+    ACCOUNT_WITHDRAWL,
+    BUDGET_TRANSFER,
+    BUDGET_WITHDRAWL
 }

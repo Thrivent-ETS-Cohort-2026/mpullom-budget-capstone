@@ -19,9 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.budget.dto.AccountRequest;
 import com.project.budget.model.Account;
-import com.project.budget.model.Transaction;
 import com.project.budget.service.AccountService;
-import com.project.budget.service.TransactionService;
 
 import jakarta.validation.Valid;
 
@@ -35,11 +33,9 @@ import jakarta.validation.Valid;
 public class AccountController {
 
     private final AccountService accountService;
-    private final TransactionService transactionService;
 
-    public AccountController(AccountService accountService, TransactionService transactionService) {
+    public AccountController(AccountService accountService) {
         this.accountService = accountService;
-        this.transactionService = transactionService;
     }
 
     @PostMapping
@@ -77,11 +73,11 @@ public class AccountController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{acctNo}/transactions")
-    public ResponseEntity<List<Transaction>> recordTransaction(@PathVariable Long acctNo) {
-        List<Transaction> transactions = transactionService.getTransactionsByAccountNum(acctNo);
-        return ResponseEntity.ok(transactions);
-    }
+    // @GetMapping("/{acctNo}/transactions")
+    // public ResponseEntity<List<Transaction>> recordTransaction(@PathVariable Long acctNo) {
+    //     List<Transaction> transactions = transactionService.getTransactionsByAccountNum(acctNo);
+    //     return ResponseEntity.ok(transactions);
+    // }
 
     @GetMapping
     public ResponseEntity<List<Account>> getAccountsByToken(
