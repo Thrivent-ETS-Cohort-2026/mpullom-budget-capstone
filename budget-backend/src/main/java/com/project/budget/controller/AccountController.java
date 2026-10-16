@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.budget.dto.AccountRequest;
 import com.project.budget.model.Account;
-import com.project.budget.model.AccountStatus;
 import com.project.budget.model.Transaction;
 import com.project.budget.service.AccountService;
 import com.project.budget.service.TransactionService;

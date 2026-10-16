@@ -18,7 +18,7 @@ export async function fetchAccounts(token: string): Promise<Account[]> {
     return response.json();
 }
 
-export async function updateAccountBalance(token: string, acctNo: number, newBalance: number): Promise<void> {
+export async function updateAccountBalance(token: string, acctNo: number, newBalance: number): Promise<Account> {
     try {
         const response = await fetch(`${BASE_URL}/${acctNo}/balance?newBalance=${newBalance}`, {
             method: "PUT",
@@ -32,6 +32,7 @@ export async function updateAccountBalance(token: string, acctNo: number, newBal
             const errorText = await response.text();
             throw new Error(errorText || "Failed to update user.");
         }
+        return await response.json();
     } catch (error: any) {
         throw new Error(error.message || "An unexpected error occurred.");
     }
