@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.project.budget.dto.BudgetRequest;
 import com.project.budget.dto.TransactionRequest;
 import com.project.budget.model.Account;
 import com.project.budget.model.Budget;
@@ -48,7 +49,7 @@ public class TransactionService {
         this.budgetService = budgetService;
     }
 
-@Transactional
+    @Transactional
     public Transaction createTransaction(String token, TransactionRequest request) {
         User authenticatedUser = userService.getUserByToken(token);
         if (authenticatedUser == null) {
@@ -68,8 +69,9 @@ public class TransactionService {
         }
 
         Budget targetBudget = budgets.findById(request.budget().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Budget not found with ID: " + request.budget().getId()));
-        
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Budget not found with ID: " + request.budget().getId()));
+
         validateBudgetOwnership(targetBudget, authenticatedUser);
 
         Account targetAccount = null;
@@ -88,10 +90,12 @@ public class TransactionService {
                 if (targetAccount.getBalance() < request.amount()) {
                     throw new IllegalStateException("Insufficient funds for withdrawal.");
                 }
-                
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(), targetAccount.getBalance() - request.amount());
-                
-                double updatedBudgetSpent = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount() : 0.0) + request.amount();
+
+                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
+                        targetAccount.getBalance() - request.amount());
+
+                double updatedBudgetSpent = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount()
+                        : 0.0) + request.amount();
                 targetBudget.setCurrentAmount(updatedBudgetSpent);
                 budgetService.updateBudgetAmount(token, targetBudget.getId(), updatedBudgetSpent);
                 break;
@@ -105,7 +109,8 @@ public class TransactionService {
 
                 validateOwnership(targetAccount, authenticatedUser);
 
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(), targetAccount.getBalance() + request.amount());
+                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
+                        targetAccount.getBalance() + request.amount());
                 break;
 
             case BUDGET_TRANSFER:
@@ -121,9 +126,11 @@ public class TransactionService {
                     throw new IllegalStateException("Insufficient funds in account for budget transfer.");
                 }
 
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(), targetAccount.getBalance() - request.amount());
+                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
+                        targetAccount.getBalance() - request.amount());
 
-                double newBudgetAmount = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount() : 0.0) + request.amount();
+                double newBudgetAmount = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount()
+                        : 0.0) + request.amount();
                 targetBudget.setCurrentAmount(newBudgetAmount);
                 budgetService.updateBudgetAmount(token, targetBudget.getId(), newBudgetAmount);
                 break;
@@ -131,13 +138,18 @@ public class TransactionService {
             case BUDGET_WITHDRAWL:
                 List<Account> userAccounts = accountService.getAccountsByToken(token);
                 targetAccount = userAccounts.stream()
-                        .filter(acc -> "CHECKING".equalsIgnoreCase(acc.getAccountType().toString()) && acc.getBalance() >= request.amount())
+                        .filter(acc -> "CHECKING".equalsIgnoreCase(acc.getAccountType().toString())
+                                && acc.getBalance() >= request.amount())
                         .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("No checking account with sufficient funds found for budget withdrawal."));
+                        .orElseThrow(() -> new IllegalStateException(
+                                "No checking account with sufficient funds found for budget withdrawal."));
 
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(), targetAccount.getBalance() - request.amount());
+                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
+                        targetAccount.getBalance() - request.amount());
 
-                double reducedBudgetAmt = Math.max(0.0, (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount() : 0.0) - request.amount());
+                double reducedBudgetAmt = Math.max(0.0,
+                        (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount() : 0.0)
+                                - request.amount());
                 targetBudget.setCurrentAmount(reducedBudgetAmt);
                 budgetService.updateBudgetAmount(token, targetBudget.getId(), reducedBudgetAmt);
                 break;
@@ -153,8 +165,7 @@ public class TransactionService {
                 request.amount(),
                 request.recurrence(),
                 request.description(),
-                (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now()
-        );
+                (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now());
 
         return transactions.save(transaction);
     }
@@ -174,7 +185,7 @@ public class TransactionService {
         return transactions.findByAccount_AccountNumber(accountNumber);
     }
 
-@Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<Transaction> filterTransactions(
             String token,
             TransactionType type,
@@ -208,7 +219,8 @@ public class TransactionService {
         if (end.isAfter(now)) {
             Specification<Transaction> recurringSpec = (root, query, criteriaBuilder) -> {
                 List<Predicate> recurringPredicates = new ArrayList<>();
-                recurringPredicates.add(criteriaBuilder.equal(root.get("account").get("user").get("id"), authenticatedUser.getId()));
+                recurringPredicates.add(
+                        criteriaBuilder.equal(root.get("account").get("user").get("id"), authenticatedUser.getId()));
                 recurringPredicates.add(criteriaBuilder.equal(root.get("recurrence"), true));
                 recurringPredicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("timestamp"), now));
 
@@ -239,8 +251,7 @@ public class TransactionService {
                                 baseTx.getAmount(),
                                 true,
                                 baseTx.getDescription() + " (Projected)",
-                                nextOccurrence
-                        );
+                                nextOccurrence);
                         resultList.add(projectedTx);
                     }
                 }
@@ -278,5 +289,59 @@ public class TransactionService {
         if (!budget.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to this budget.");
         }
+    }
+
+   @Transactional
+    public void deleteTransaction(String token, Long id) {
+        Transaction transaction = transactions.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction " + id + " not found"));
+
+        double amount = transaction.getAmount();
+
+        if (transaction.getAccount() != null && transaction.getTransactionType() != null) {
+            Account account = transaction.getAccount();
+            Long accountNumber = account.getAccountNumber(); 
+            double updatedBalance = account.getBalance();
+            switch (transaction.getTransactionType()) {
+                case ACCOUNT_DEPOSIT:
+                    updatedBalance -= amount;
+                    break;
+                case ACCOUNT_WITHDRAWL:
+                    updatedBalance += amount;
+                    break;
+                default:
+                    break;
+            }
+
+            accountService.updateAccountBalance(token, accountNumber, updatedBalance);
+        }
+
+        if (transaction.getBudget() != null && transaction.getBudget().getId() != 0 && transaction.getTransactionType() != null) {
+            Long budgetId = transaction.getBudget().getId();
+            Budget budget = transaction.getBudget();
+
+            double updatedAmount = budget.getCurrentAmount();
+            switch (transaction.getTransactionType()) {
+                case BUDGET_TRANSFER:
+                    updatedAmount -= amount;
+                    break;
+                case BUDGET_WITHDRAWL:
+                    updatedAmount += amount;
+                    break;
+                default:
+                    break;
+            }
+
+            budgetService.updateBudgetByID(token, budgetId, new BudgetRequest(
+                    budget.getUser(),
+                    budget.getDescription(),
+                    budget.getTargetPeriod(),
+                    updatedAmount,
+                    budget.getMaxAmount(),
+                    budget.getEnabled()
+            ));
+        }
+
+        transactions.delete(transaction);
     }
 }

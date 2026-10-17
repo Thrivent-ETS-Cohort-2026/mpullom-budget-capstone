@@ -148,7 +148,7 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                             onChange={(e) => setMaxAmount(Number(e.target.value))}
                             disabled={!isEditing}
                             style={{ width: `${Math.max(maxAmount.toString().length + 4, 8)}ch` }}
-                            className={`bg-transparent border-2 rounded px-1 font-bold text-center transition-colors min-w-[80px] ${isEditing ? "border-white bg-sky-700 text-white" : "border-transparent cursor-default"
+                            className={`bg-transparent border-2 rounded px-1 font-bold text-center transition-colors min-w-20 ${isEditing ? "border-white bg-sky-700 text-white" : "border-transparent cursor-default"
                                 }`}
                         />
                         <span className="text-sky-200">/</span>
@@ -185,7 +185,7 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                 <div className="flex gap-4 items-end">
                     <button
                         onClick={handleEnableToggle}
-                        className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-[26px]"
+                        className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-6.5"
                     >
                         {isEnabled ? "Disable" : "Enable"}
                     </button>

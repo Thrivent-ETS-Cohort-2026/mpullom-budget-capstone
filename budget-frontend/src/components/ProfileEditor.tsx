@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import { usePathname } from 'next/navigation';
 import { createUser, updateUser } from '@/lib/userApi';
 import { AuthContext } from "@/context/AuthContext";
+import Notification from "./Notification";
 
 interface ProfileEditorProps {
     onSwitchToLogin?: () => void;
@@ -14,31 +15,66 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
     const [phoneNumberInput, setPhoneNumberInput] = useState<string>("");
     const [emailInput, setEmailInput] = useState<string>("");
     const [passInput, setPassInput] = useState<string>("");
+    const [notificationMessage, setNotificationMessage] = useState<string>("");
+    
     const pathname = usePathname();
-
     const { currentUser } = useContext(AuthContext);
+
+    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const isValidPhoneNumber = (phone: string) => /^\+?[\d\s\-()]{7,15}$/.test(phone);
 
     async function handleSignUp() {
         if (pathname === '/') {
-            await createUser({
-                firstName: firstNameInput,
-                lastName: lastNameInput,
-                email: emailInput,
-                phoneNumber: phoneNumberInput,
-                password: passInput
-            });
-            onSwitchToLogin?.();
+            if (!firstNameInput.trim() || !lastNameInput.trim() || !emailInput.trim() || !phoneNumberInput.trim() || !passInput.trim()) {
+                setNotificationMessage("All fields are required for sign up.");
+                return;
+            }
+
+            if (!isValidEmail(emailInput)) {
+                setNotificationMessage("Please enter a valid email address.");
+                return;
+            }
+
+            if (!isValidPhoneNumber(phoneNumberInput)) {
+                setNotificationMessage("Please enter a valid phone number.");
+                return;
+            }
+
+            try {
+                await createUser({
+                    firstName: firstNameInput,
+                    lastName: lastNameInput,
+                    email: emailInput,
+                    phoneNumber: phoneNumberInput,
+                    password: passInput
+                });
+                onSwitchToLogin?.();
+            } catch (err: any) {
+                setNotificationMessage(err.message || "Failed to sign up.");
+            }
         } else {
             console.log("Skipping sign up based on pathname:", pathname);
         }
     }
 
     async function handleEdit() {
-        if (currentUser == null) {
-            console.log("Skipping edit as current user is null");
-        }
         if (pathname.startsWith('/dashboard')) {
-            if (currentUser != null) {
+            if (currentUser == null) {
+                console.log("Skipping edit as current user is null");
+                return;
+            }
+
+            if (emailInput.trim() && !isValidEmail(emailInput)) {
+                setNotificationMessage("The email address is in the wrong format.");
+                return;
+            }
+
+            if (phoneNumberInput.trim() && !isValidPhoneNumber(phoneNumberInput)) {
+                setNotificationMessage("The phone number is in the wrong format.");
+                return;
+            }
+
+            try {
                 await updateUser({
                     firstName: firstNameInput,
                     lastName: lastNameInput,
@@ -46,11 +82,10 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                     phoneNumber: phoneNumberInput,
                     password: passInput
                 }, currentUser.token);
+                onSwitchToLogin?.();
+            } catch (err: any) {
+                setNotificationMessage(err.message || "Failed to update profile.");
             }
-            else {
-                console.log("Skipping edit as current user is null");
-            }
-
         } else {
             console.log("Skipping edit based on pathname:", pathname);
         }
@@ -58,6 +93,10 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <Notification
+                message={notificationMessage}
+                onClose={() => setNotificationMessage("")}
+            />
 
             <div className="relative w-full max-w-xl max-h-[85vh] overflow-y-auto p-6 bg-sky-400 rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-4">
 
@@ -129,8 +168,6 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                         onChange={(e) => setPassInput(e.target.value)}
                     />
                 </div>
-
-
 
                 {pathname == "/" && (<div className="flex gap-4 pt-2">
                     <button

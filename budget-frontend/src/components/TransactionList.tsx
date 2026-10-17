@@ -9,6 +9,7 @@ import { fetchAccounts } from "@/lib/accountApi";
 import TransactionCard from "./TransactionCard";
 import CsvDownloader from "./CsvDownloader";
 import TransactionFilterFetch from "./TransactionFilterFetch";
+import Notification from "./Notification";
 
 export default function TransactionList() {
     const router = useRouter();
@@ -16,6 +17,7 @@ export default function TransactionList() {
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [notificationMessage, setNotificationMessage] = useState<string>("");
 
     const [submittedFrom, setSubmittedFrom] = useState<string>("");
     const [submittedTo, setSubmittedTo] = useState<string>("");
@@ -30,12 +32,13 @@ export default function TransactionList() {
     const [amount, setAmount] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [recurrence, setRecurrence] = useState<boolean>(false);
-    
+
     const [transactionDate, setTransactionDate] = useState<string>("");
     const [transactionTime, setTransactionTime] = useState<string>("");
 
     const { currentUser } = useContext(AuthContext);
 
+    // Check specific route contexts
     const isBankingRoute = pathname === '/dashboard/banking/transactions';
     const isBudgetingRoute = pathname === '/dashboard/budgeting/transactions';
 
@@ -92,12 +95,18 @@ export default function TransactionList() {
         if (!currentUser) return;
 
         if (!budgetId || budgetId === 0) {
-            alert("Please select a valid budget.");
+            setNotificationMessage("Please select a valid budget.");
+            return;
+        }
+
+        const selectedBudget = budgets.find(b => b.id === Number(budgetId));
+        if (selectedBudget && selectedBudget.enabled === false) {
+            setNotificationMessage("Cannot create a transaction for a disabled budget.");
             return;
         }
 
         if (transactionType !== TransactionType.BUDGET_WITHDRAWL && (!accountNumber || accountNumber === 0)) {
-            alert("Please select a valid account.");
+            setNotificationMessage("Please select a valid account.");
             return;
         }
 
@@ -133,9 +142,17 @@ export default function TransactionList() {
             setTransactionTime("");
 
             await fetchTransactionsList();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to create transaction:", err);
-            alert("Failed to create transaction. Check if the budget is active and funds are sufficient.");
+
+            let errorMsg = "Failed to create transaction. Check if the budget is active and funds are sufficient.";
+            if (err instanceof Error) {
+                errorMsg = err.message;
+            } else if (typeof err === "string") {
+                errorMsg = err;
+            }
+
+            setNotificationMessage(errorMsg);
         }
     }
 
@@ -144,7 +161,12 @@ export default function TransactionList() {
     }
 
     return (
-        <main className="p-4 w-full">
+        <main className="p-4 w-full relative">
+            <Notification
+                message={notificationMessage}
+                onClose={() => setNotificationMessage("")}
+            />
+
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Transactions</h1>
                 <div className="flex items-center gap-2">
@@ -224,7 +246,7 @@ export default function TransactionList() {
                             <option value={0} disabled>Select budget</option>
                             {budgets.map(b => (
                                 <option key={b.id} value={b.id}>
-                                    {b.description || `Budget #${b.id}`}
+                                    {b.description || `Budget #${b.id}`} {b.enabled === false ? "(Disabled)" : ""}
                                 </option>
                             ))}
                         </select>
@@ -301,6 +323,7 @@ export default function TransactionList() {
                         <TransactionCard
                             key={transaction.transactionId ? `${transaction.transactionId}-${index}` : `fallback-key-${index}`}
                             transaction={transaction}
+                            onDeleted={fetchTransactionsList}
                         />
                     ))
                 )}

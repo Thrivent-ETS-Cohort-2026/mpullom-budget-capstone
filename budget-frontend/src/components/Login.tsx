@@ -1,9 +1,9 @@
 'use client'
 import { useContext, useState } from "react";
 import { validatePassword } from '@/lib/auth';
-
 import { useRouter } from 'next/navigation';
 import { AuthContext } from "@/context/AuthContext";
+import Notification from "./Notification";
 
 interface LoginProps {
     onSwitchToSignup: () => void;
@@ -15,21 +15,49 @@ export default function Login({ onSwitchToSignup }: LoginProps) {
 
     const [emailInput, setEmailInput] = useState<string>("");
     const [passInput, setPassInput] = useState<string>("");
+    const [notificationMessage, setNotificationMessage] = useState<string>("");
+
+    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     async function handleLogin() {
-        const currentUser = await validatePassword(emailInput, passInput);
+        if (!emailInput.trim() || !isValidEmail(emailInput)) {
+            setNotificationMessage("Please enter a valid email address format.");
+            return;
+        }
 
-        if (currentUser != null) {
-            setCurrentUser(currentUser);
-            router.push('/dashboard/banking');
-        } else {
-            console.log("Invalid credentials");
+        if (!passInput.trim()) {
+            setNotificationMessage("Please enter your password.");
+            return;
+        }
+
+        try {
+            const currentUser = await validatePassword(emailInput, passInput);
+
+            if (currentUser != null) {
+                setCurrentUser(currentUser);
+                router.push('/dashboard/banking');
+            } else {
+                setNotificationMessage("Invalid email or password. Please check your credentials.");
+            }
+        } catch (err: any) {
+            const errorMsg = err?.message || "";
+            
+            if (errorMsg.includes("500") || errorMsg.toLowerCase().includes("email") || errorMsg.toLowerCase().includes("exist")) {
+                setNotificationMessage("The email address does not exist.");
+            } else if (errorMsg.toLowerCase().includes("password")) {
+                setNotificationMessage("The password you entered is incorrect.");
+            } else {
+                setNotificationMessage("The email address does not exist or the password is incorrect.");
+            }
         }
     }
 
-
     return (
-        <div className="w-full max-w-xl p-8 bg-sky-400 backdrop-blur rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-6">
+        <div className="w-full max-w-xl p-8 bg-sky-400 backdrop-blur rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-6 relative">
+            <Notification
+                message={notificationMessage}
+                onClose={() => setNotificationMessage("")}
+            />
 
             <div className="flex flex-col gap-2">
                 <label htmlFor="email-input" className="text-sm font-medium text-slate-600">Email</label>
@@ -57,6 +85,7 @@ export default function Login({ onSwitchToSignup }: LoginProps) {
 
             <div className="flex gap-4 pt-2">
                 <button
+                    type="button"
                     className="flex-1 py-2.5 px-4 border-2 border-slate-500 rounded-lg font-medium hover:bg-slate-800 active:bg-slate-900 transition"
                     onClick={() => onSwitchToSignup()}
                 >
@@ -64,13 +93,13 @@ export default function Login({ onSwitchToSignup }: LoginProps) {
                 </button>
 
                 <button
+                    type="button"
                     className="flex-1 py-2.5 px-4 bg-slate-600 text-white rounded-lg font-medium hover:bg-slate-800 active:bg-blue-900 transition"
                     onClick={() => handleLogin()}
                 >
                     Login
                 </button>
             </div>
-
         </div>
-    )
+    );
 }

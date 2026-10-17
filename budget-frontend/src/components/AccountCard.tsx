@@ -192,7 +192,7 @@ export default function AccountCard({ account }: { account: Account }) {
                             <select
                                 value={selectedTarget}
                                 onChange={(e) => setSelectedTarget(e.target.value)}
-                                className="px-2 py-1 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white max-w-[150px]"
+                                className="px-2 py-1 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white max-w-37.5"
                             >
                                 <option value="" disabled>Select target</option>
                                 {allAccounts.length > 0 && (
