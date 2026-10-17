@@ -4,12 +4,13 @@ import { useState, useEffect, useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Transaction, BudgetType, Account, TransactionType } from "@/types/DataTypes";
 import { AuthContext } from "@/context/AuthContext";
-import { getTransactions, getBudgets, createTransaction } from "@/lib/transactionApi";
+import { getTransactions, createTransaction } from "@/lib/transactionApi";
 import { fetchAccounts } from "@/lib/accountApi";
 import TransactionCard from "./TransactionCard";
 import CsvDownloader from "./CsvDownloader";
 import TransactionFilterFetch from "./TransactionFilterFetch";
 import Notification from "./Notification";
+import { fetchBudgets } from "@/lib/budgetApi";
 
 export default function TransactionList() {
     const router = useRouter();
@@ -67,7 +68,7 @@ export default function TransactionList() {
             if (isCreating && currentUser) {
                 try {
                     const [budgetsData, accountsData] = await Promise.all([
-                        getBudgets(currentUser.token),
+                        fetchBudgets(currentUser.token),
                         fetchAccounts(currentUser.token)
                     ]);
                     setBudgets(budgetsData);

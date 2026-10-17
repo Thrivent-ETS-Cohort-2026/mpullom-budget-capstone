@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,11 +43,6 @@ public class AccountController {
         return new ResponseEntity<>(savedAccount, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{acctNo}")
-    public ResponseEntity<Account> getAccountByNum(@PathVariable Long acctNo) {
-        return ResponseEntity.ok(accountService.getAccountByNum(acctNo));
-    }
-
     @PutMapping("/{acctNo}/balance")
     public ResponseEntity<Account> updateAccountStatus(
             @PathVariable Long acctNo,
@@ -57,7 +51,6 @@ public class AccountController {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         }
 
         String token = authHeader.substring(7);
@@ -65,30 +58,15 @@ public class AccountController {
         return ResponseEntity.ok(savedAccount);
     }
 
-    @DeleteMapping("/{acctNo}")
-    public ResponseEntity<Void> deleteAccount(
-            @PathVariable Long acctNo,
-            @RequestParam Long userId) {
-        accountService.deleteAccount(acctNo);
-        return ResponseEntity.noContent().build();
-    }
-
-    // @GetMapping("/{acctNo}/transactions")
-    // public ResponseEntity<List<Transaction>> recordTransaction(@PathVariable Long acctNo) {
-    //     List<Transaction> transactions = transactionService.getTransactionsByAccountNum(acctNo);
-    //     return ResponseEntity.ok(transactions);
-    // }
-
     @GetMapping
     public ResponseEntity<List<Account>> getAccountsByToken(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         }
+        
         String token = authHeader.substring(7);
-
         return ResponseEntity.ok(accountService.getAccountsByToken(token));
     }
 }

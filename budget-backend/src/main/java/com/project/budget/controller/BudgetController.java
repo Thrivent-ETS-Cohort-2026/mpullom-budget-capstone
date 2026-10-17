@@ -29,7 +29,6 @@ public class BudgetController {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         }
 
         String token = authHeader.substring(7);
@@ -44,7 +43,6 @@ public class BudgetController {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         }
 
         String token = authHeader.substring(7);
@@ -61,7 +59,6 @@ public class BudgetController {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         }
 
         String token = authHeader.substring(7);

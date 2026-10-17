@@ -31,27 +31,6 @@ export async function getTransactions(token: string, fromDate?: string, toDate?:
     return response.json();
 }
 
-export async function getAccounts(token: string) {
-    const response = await fetch(`${BASE_URL}/accounts`, {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch accounts");
-    }
-    return response.json();
-}
-
-export async function getBudgets(token: string) {
-    const response = await fetch(`${BASE_URL}/budgets`, {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch budgets");
-    }
-    return response.json();
-}
 
 export async function createTransaction(token: string, transactionData: {
     account?: { accountNumber: number };
