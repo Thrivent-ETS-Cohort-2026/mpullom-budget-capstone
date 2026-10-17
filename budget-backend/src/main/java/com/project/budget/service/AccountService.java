@@ -58,34 +58,6 @@ public class AccountService {
         return accounts.save(account);
     }
 
-    @Transactional
-    public void deleteAccount(Long accountNumber) {
-        Account account = accounts.getReferenceById(accountNumber);
-        if (account.getBalance() != 0) {
-            throw new IllegalStateException("Cannot delete account. The balance must be zero.");
-        }
-
-        accounts.delete(account);
-    }
-
-    @Transactional
-    public Account modifyBalance(Long accountNumber, Long change) {
-        Account account = getAccountByNum(accountNumber);
-
-        double newBalance = account.getBalance() + change;
-        if (newBalance < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
-        }
-
-        account.setBalance(newBalance);
-        return accounts.save(account);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Account> getAllAccounts() {
-        return accounts.findAll();
-    }
-
     @Transactional(readOnly = true)
     public List<Account> getAccountsByToken(String token) {
         User user = userService.getUserByToken(token);

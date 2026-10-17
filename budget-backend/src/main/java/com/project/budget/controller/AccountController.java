@@ -44,7 +44,7 @@ public class AccountController {
     }
 
     @PutMapping("/{acctNo}/balance")
-    public ResponseEntity<Account> updateAccountStatus(
+    public ResponseEntity<Account> updateAccountBalance(
             @PathVariable Long acctNo,
             @RequestParam Double newBalance,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {

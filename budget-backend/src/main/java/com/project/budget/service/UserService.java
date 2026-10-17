@@ -1,6 +1,5 @@
 package com.project.budget.service;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -35,42 +34,6 @@ public class UserService {
                 newUser.phoneNumber(),
                 newUser.password(),
                 uniqueToken);
-
-        return users.save(user);
-    }
-
-    @Transactional(readOnly = true)
-    public List<User> getUsers() {
-        return users.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public User getUserById(Long id) {
-        return users.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "User not found with id: " + id));
-    }
-
-    @Transactional
-    public User updateUserByID(Long userId, UserRequest userUpdates) {
-        User user = users.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User " + userId + " not found"));
-
-        if (userUpdates.firstName() != null && !userUpdates.firstName().isBlank()) {
-            user.setFirstName(userUpdates.firstName());
-        }
-
-        if (userUpdates.lastName() != null && !userUpdates.lastName().isBlank()) {
-            user.setLastName(userUpdates.lastName());
-        }
-
-        if (userUpdates.email() != null && !userUpdates.email().isBlank()) {
-            user.setEmail(userUpdates.email());
-        }
-
-        if (userUpdates.phoneNumber() != null && !userUpdates.phoneNumber().isBlank()) {
-            user.setPhoneNumber(userUpdates.phoneNumber());
-        }
 
         return users.save(user);
     }
