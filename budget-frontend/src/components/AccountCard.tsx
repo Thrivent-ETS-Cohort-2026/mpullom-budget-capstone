@@ -4,6 +4,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { updateAccountBalance, fetchAccounts } from "@/lib/accountApi";
 import { fetchBudgets } from "@/lib/budgetApi";
 import { createTransaction } from "@/lib/transactionApi";
+import Notification from "@/components/Notification";
 import { useRouter } from "next/navigation";
 
 export default function AccountCard({ account }: { account: Account }) {
@@ -13,9 +14,11 @@ export default function AccountCard({ account }: { account: Account }) {
     
     const [depositAmount, setDepositAmount] = useState<string>("");
     const [withdrawAmount, setWithdrawAmount] = useState<string>("");
-    
     const [transferAmount, setTransferAmount] = useState<string>("");
-    const [selectedTarget, setSelectedTarget] = useState<string>(""); 
+
+    const [selectedAccountBudget, setSelectedAccountBudget] = useState<string>(""); 
+    const [notificationMessage, setNotificationMessage] = useState<string>("");
+    
     const [allAccounts, setAllAccounts] = useState<Account[]>([]);
     const [allBudgets, setAllBudgets] = useState<BudgetType[]>([]);
 
@@ -43,11 +46,16 @@ export default function AccountCard({ account }: { account: Account }) {
 
     async function handleBalanceChange(isDeposit: boolean) {
         if (currentUser != null && account != null) {
+            if (!selectedAccountBudget) {
+                setNotificationMessage("Please select a budget from the dropdown above before submitting this transaction.");
+                return;
+            }
+
             const rawAmount = isDeposit ? depositAmount : withdrawAmount;
             const amount = parseFloat(rawAmount);
 
             if (isNaN(amount) || amount <= 0) {
-                console.log("Invalid amount entered");
+                setNotificationMessage("Invalid amount entered.");
                 return;
             }
 
@@ -55,7 +63,7 @@ export default function AccountCard({ account }: { account: Account }) {
                 const transactionType = isDeposit ? TransactionType.ACCOUNT_DEPOSIT : TransactionType.ACCOUNT_WITHDRAWL;
                 const transactionData = {
                     account: { accountNumber: account.accountNumber },
-                    budget: { id: 0 },
+                    budget: { id: Number(selectedAccountBudget) },
                     transactionType: transactionType,
                     amount: amount,
                     description: `${isDeposit ? "Deposit to" : "Withdrawal from"} Account #${account.accountNumber}`,
@@ -71,6 +79,8 @@ export default function AccountCard({ account }: { account: Account }) {
                 await updateAccountBalance(currentUser.token, account.accountNumber, newBalance);
                 
                 setCurrentBalance(newBalance);
+                setNotificationMessage(`Successfully processed ${isDeposit ? "deposit" : "withdrawal"}!`);
+
                 if (isDeposit) {
                     setDepositAmount("");
                 } else {
@@ -78,7 +88,7 @@ export default function AccountCard({ account }: { account: Account }) {
                 }
             } catch (err) {
                 console.error(`Failed to process ${isDeposit ? "deposit" : "withdrawal"} transaction:`, err);
-                alert(`Failed to process ${isDeposit ? "deposit" : "withdrawal"}. Check balance and account status.`);
+                setNotificationMessage(`Failed to process ${isDeposit ? "deposit" : "withdrawal"}. Check balance and account status.`);
             }
         } else {
             console.log("Null values: update was rejected");
@@ -87,29 +97,24 @@ export default function AccountCard({ account }: { account: Account }) {
 
     async function handleTransfer() {
         if (currentUser != null && account != null) {
+            if (!selectedAccountBudget) {
+                setNotificationMessage("Please select a budget from the dropdown above before submitting this transaction.");
+                return;
+            }
+
             const amount = parseFloat(transferAmount);
             if (isNaN(amount) || amount <= 0) {
-                console.log("Invalid transfer amount entered");
+                setNotificationMessage("Invalid transfer amount entered.");
                 return;
             }
-
-            if (!selectedTarget) {
-                alert("Please select a target account or budget to transfer to.");
-                return;
-            }
-
-            const [type, targetIdStr] = selectedTarget.split(":");
-            const targetId = Number(targetIdStr);
 
             try {
-                const isBudgetTransfer = type === "BUDGET";
-
                 const transactionData = {
                     account: { accountNumber: account.accountNumber },
-                    budget: isBudgetTransfer ? { id: targetId } : { id: 0 },
-                    transactionType: isBudgetTransfer ? TransactionType.BUDGET_TRANSFER : TransactionType.BUDGET_TRANSFER,
+                    budget: { id: Number(selectedAccountBudget) },
+                    transactionType: TransactionType.BUDGET_TRANSFER,
                     amount: amount,
-                    description: `Transfer from Account #${account.accountNumber} to ${isBudgetTransfer ? `Budget #${targetId}` : `Account #${targetId}`}`,
+                    description: `Transfer from Account #${account.accountNumber} using Budget #${selectedAccountBudget}`,
                     recurrence: false
                 };
 
@@ -121,19 +126,29 @@ export default function AccountCard({ account }: { account: Account }) {
                 
                 setCurrentBalance(newBalance);
                 setTransferAmount("");
-                setSelectedTarget("");
+                setNotificationMessage("Successfully processed transfer!");
             } catch (err) {
                 console.error("Failed to process transfer:", err);
-                alert("Failed to process transfer transaction.");
+                setNotificationMessage("Failed to process transfer transaction.");
             }
         } else {
             console.log("Null values: update was rejected");
         }
     }
 
+    const isDepositTyping = depositAmount.length > 0;
+    const isWithdrawTyping = withdrawAmount.length > 0;
+    const isTransferTyping = transferAmount.length > 0;
+
     return (
         <div className={`w-full p-3 border rounded-lg shadow-sm flex flex-col gap-3 transition-colors 
-        bg-sky-600 text-slate-200`}>
+        bg-sky-600 text-slate-200 relative`}>
+            
+            <Notification 
+                message={notificationMessage} 
+                onClose={() => setNotificationMessage("")} 
+            />
+
             <div className="flex justify-between items-center w-full">
                 <div className="flex flex-col gap-0.5">
                     <div>
@@ -147,6 +162,22 @@ export default function AccountCard({ account }: { account: Account }) {
             </div>
 
             <div className="flex flex-col gap-2 mt-1">
+                <div className="w-full flex flex-col gap-1">
+                    <label className="text-xs font-medium text-sky-200">Account Budget Specification</label>
+                    <select
+                        value={selectedAccountBudget}
+                        onChange={(e) => setSelectedAccountBudget(e.target.value)}
+                        className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-full"
+                    >
+                        <option value="" disabled>Select a budget for transactions</option>
+                        {allBudgets.map(b => (
+                            <option key={`account-budget-${b.id}`} value={b.id}>
+                                {b.description || `Budget #${b.id}`}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <div className="flex justify-between items-center w-full gap-4">
                     <div className="flex flex-col gap-1 flex-1">
                         <input
@@ -154,7 +185,8 @@ export default function AccountCard({ account }: { account: Account }) {
                             placeholder="Deposit amount"
                             value={depositAmount}
                             onChange={(e) => setDepositAmount(e.target.value)}
-                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white"
+                            disabled={isWithdrawTyping || isTransferTyping}
+                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50"
                         />
                         <button
                             onClick={() => handleBalanceChange(true)}
@@ -170,7 +202,8 @@ export default function AccountCard({ account }: { account: Account }) {
                             placeholder="Withdraw amount"
                             value={withdrawAmount}
                             onChange={(e) => setWithdrawAmount(e.target.value)}
-                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white"
+                            disabled={isDepositTyping || isTransferTyping}
+                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50"
                         />
                         <button
                             onClick={() => handleBalanceChange(false)}
@@ -181,43 +214,17 @@ export default function AccountCard({ account }: { account: Account }) {
                     </div>
 
                     <div className="flex flex-col gap-1 flex-1">
-                        <div className="flex gap-1">
-                            <input
-                                type="number"
-                                placeholder="Amount"
-                                value={transferAmount}
-                                onChange={(e) => setTransferAmount(e.target.value)}
-                                className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-28"
-                            />
-                            <select
-                                value={selectedTarget}
-                                onChange={(e) => setSelectedTarget(e.target.value)}
-                                className="px-2 py-1 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white max-w-37.5"
-                            >
-                                <option value="" disabled>Select target</option>
-                                {allAccounts.length > 0 && (
-                                    <optgroup label="Accounts">
-                                        {allAccounts.map(acc => (
-                                            <option key={`acc-${acc.accountNumber}`} value={`ACCOUNT:${acc.accountNumber}`}>
-                                                {acc.accountType} (#{acc.accountNumber})
-                                            </option>
-                                        ))}
-                                    </optgroup>
-                                )}
-                                {allBudgets.length > 0 && (
-                                    <optgroup label="Budgets">
-                                        {allBudgets.map(b => (
-                                            <option key={`budget-${b.id}`} value={`BUDGET:${b.id}`}>
-                                                {b.description || `Budget #${b.id}`}
-                                            </option>
-                                        ))}
-                                    </optgroup>
-                                )}
-                            </select>
-                        </div>
+                        <input
+                            type="number"
+                            placeholder="Transfer amount"
+                            value={transferAmount}
+                            onChange={(e) => setTransferAmount(e.target.value)}
+                            disabled={isDepositTyping || isWithdrawTyping}
+                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-full disabled:opacity-50"
+                        />
                         <button
                             onClick={handleTransfer}
-                            className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors"
+                            className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
                         >
                             Transfer
                         </button>
