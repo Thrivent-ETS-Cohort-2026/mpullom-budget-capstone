@@ -5,21 +5,22 @@ import { updateAccountBalance, fetchAccounts } from "@/lib/accountApi";
 import { fetchBudgets } from "@/lib/budgetApi";
 import { createTransaction } from "@/lib/transactionApi";
 import Notification from "@/components/Notification";
+import { createAccountTransfer } from "@/lib/accountTransferApi";
 
 export default function AccountCard({ account }: { account: Account }) {
     if (!account) return null;
 
     const [currentBalance, setCurrentBalance] = useState(account.balance ?? 0);
-    
+
     const [depositAmount, setDepositAmount] = useState<string>("");
     const [withdrawAmount, setWithdrawAmount] = useState<string>("");
     const [transferAmount, setTransferAmount] = useState<string>("");
     const [accountTransferAmount, setAccountTransferAmount] = useState<string>("");
 
-    const [selectedAccountBudget, setSelectedAccountBudget] = useState<string>(""); 
+    const [selectedAccountBudget, setSelectedAccountBudget] = useState<string>("");
     const [selectedTargetAccount, setSelectedTargetAccount] = useState<string>("");
     const [notificationMessage, setNotificationMessage] = useState<string>("");
-    
+
     const [allAccounts, setAllAccounts] = useState<Account[]>([]);
     const [allBudgets, setAllBudgets] = useState<BudgetType[]>([]);
 
@@ -33,7 +34,7 @@ export default function AccountCard({ account }: { account: Account }) {
                         fetchAccounts(currentUser.token),
                         fetchBudgets(currentUser.token)
                     ]);
-                    
+
                     setAllAccounts(accountsData.filter(acc => acc.accountNumber !== account.accountNumber));
                     setAllBudgets(budgetsData);
                 } catch (err) {
@@ -72,12 +73,12 @@ export default function AccountCard({ account }: { account: Account }) {
 
                 await createTransaction(currentUser.token, transactionData);
 
-                const newBalance = isDeposit 
-                    ? currentBalance + amount 
+                const newBalance = isDeposit
+                    ? currentBalance + amount
                     : currentBalance - amount;
 
                 await updateAccountBalance(currentUser.token, account.accountNumber, newBalance);
-                
+
                 setCurrentBalance(newBalance);
                 setNotificationMessage(`Successfully processed ${isDeposit ? "deposit" : "withdrawal"}!`);
 
@@ -123,7 +124,7 @@ export default function AccountCard({ account }: { account: Account }) {
                 const newBalance = currentBalance - amount;
 
                 await updateAccountBalance(currentUser.token, account.accountNumber, newBalance);
-                
+
                 setCurrentBalance(newBalance);
                 setTransferAmount("");
                 setNotificationMessage("Successfully processed budget transfer!");
@@ -137,56 +138,45 @@ export default function AccountCard({ account }: { account: Account }) {
     }
 
     async function handleAccountTransfer() {
-        console.log("Clicked transfer")
-        // if (currentUser != null && account != null) {
-        //     if (!selectedTargetAccount) {
-        //         setNotificationMessage("Please select a target account for the transfer.");
-        //         return;
-        //     }
+        console.log("Clicked transfer");
+        if (currentUser != null && account != null) {
+            if (!selectedTargetAccount) {
+                setNotificationMessage("Please select a target account for the transfer.");
+                return;
+            }
 
-        //     const amount = parseFloat(accountTransferAmount);
-        //     if (isNaN(amount) || amount <= 0) {
-        //         setNotificationMessage("Invalid account transfer amount entered.");
-        //         return;
-        //     }
+            const amount = parseFloat(accountTransferAmount);
+            if (isNaN(amount) || amount <= 0) {
+                setNotificationMessage("Invalid account transfer amount entered.");
+                return;
+            }
 
-        //     if (amount > currentBalance) {
-        //         setNotificationMessage("Insufficient funds for account transfer.");
-        //         return;
-        //     }
+            if (amount > currentBalance) {
+                setNotificationMessage("Insufficient funds for account transfer.");
+                return;
+            }
 
-        //     try {
-        //         const transactionData = {
-        //             account: { accountNumber: account.accountNumber },
-        //             budget: null,
-        //             transactionType: TransactionType.ACCOUNT_TRANSFER,
-        //             amount: amount,
-        //             description: `Transfer from Account #${account.accountNumber} to Account #${selectedTargetAccount}`,
-        //             recurrence: false
-        //         };
+            try {
+                await createAccountTransfer(currentUser.token, {
+                    sourceAccountNumber: account.accountNumber,
+                    targetAccountNumber: Number(selectedTargetAccount),
+                    amount: amount,
+                    description: `Transfer from Account #${account.accountNumber} to Account #${selectedTargetAccount}`
+                });
 
-        //         await createTransaction(currentUser.token, transactionData);
+                const newSourceBalance = currentBalance - amount;
 
-        //         const newSourceBalance = currentBalance - amount;
-        //         await updateAccountBalance(currentUser.token, account.accountNumber, newSourceBalance);
-
-        //         const targetAcc = allAccounts.find(a => a.accountNumber === Number(selectedTargetAccount));
-        //         if (targetAcc) {
-        //             const newTargetBalance = (targetAcc.balance ?? 0) + amount;
-        //             await updateAccountBalance(currentUser.token, targetAcc.accountNumber, newTargetBalance);
-        //         }
-                
-        //         setCurrentBalance(newSourceBalance);
-        //         setAccountTransferAmount("");
-        //         setSelectedTargetAccount("");
-        //         setNotificationMessage("Successfully transferred funds to account!");
-        //     } catch (err) {
-        //         console.error("Failed to process account-to-account transfer:", err);
-        //         setNotificationMessage("Failed to process account-to-account transfer.");
-        //     }
-        // } else {
-        //     console.log("Null values: update was rejected");
-        // }
+                setCurrentBalance(newSourceBalance);
+                setAccountTransferAmount("");
+                setSelectedTargetAccount("");
+                setNotificationMessage("Successfully transferred funds to account!");
+            } catch (err) {
+                console.error("Failed to process account-to-account transfer:", err);
+                setNotificationMessage("Failed to process account-to-account transfer.");
+            }
+        } else {
+            console.log("Null values: update was rejected");
+        }
     }
 
     const isDepositTyping = depositAmount.length > 0;
@@ -197,10 +187,10 @@ export default function AccountCard({ account }: { account: Account }) {
     return (
         <div className={`w-full p-3 border rounded-lg shadow-sm flex flex-col gap-3 transition-colors 
         bg-sky-600 text-slate-200 relative`}>
-            
-            <Notification 
-                message={notificationMessage} 
-                onClose={() => setNotificationMessage("")} 
+
+            <Notification
+                message={notificationMessage}
+                onClose={() => setNotificationMessage("")}
             />
 
             <div className="flex justify-between items-center w-full">
@@ -217,7 +207,7 @@ export default function AccountCard({ account }: { account: Account }) {
 
             <div className="flex flex-col gap-2 mt-1">
                 <div className="grid grid-cols-4 gap-3 w-full items-end">
-                    
+
                     <div className="col-span-3 flex flex-col gap-2">
                         <div className="flex flex-col gap-1 w-full">
                             <label className="text-xs font-medium text-sky-200">Account Budget Specification</label>

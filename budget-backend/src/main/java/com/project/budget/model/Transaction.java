@@ -62,7 +62,7 @@ public class Transaction {
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("Description cannot be null or empty.");
         }
-
+ 
         this.account = account;
         this.budget = budget;
         this.transactionType = transactionType;
