@@ -82,6 +82,10 @@ public class UserService {
             user.setPhoneNumber(userUpdates.phoneNumber());
         }
 
+        if (userUpdates.password() != null && !userUpdates.password().isBlank()) {
+            user.setPassword(userUpdates.password());
+        }
+
         return users.save(user);
     }
 
