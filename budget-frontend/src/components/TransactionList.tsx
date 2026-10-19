@@ -8,7 +8,7 @@ import { getTransactions, createTransaction } from "@/lib/transactionApi";
 import { fetchAccounts } from "@/lib/accountApi";
 import TransactionCard from "./TransactionCard";
 import CsvDownloader from "./CsvDownloader";
-import TransactionFilterFetch from "./TransactionFilterFetch";
+import TransactionFilter from "./TransactionFilter";
 import Notification from "./Notification";
 import { fetchBudgets } from "@/lib/budgetApi";
 
@@ -39,7 +39,6 @@ export default function TransactionList() {
 
     const { currentUser } = useContext(AuthContext);
 
-    // Check specific route contexts
     const isBankingRoute = pathname === '/dashboard/banking/transactions';
     const isBudgetingRoute = pathname === '/dashboard/budgeting/transactions';
 
@@ -87,6 +86,11 @@ export default function TransactionList() {
     }, [isCreating, currentUser]);
 
     function handleFilterSearch(fromDate: string, toDate: string) {
+        if (fromDate && toDate && fromDate > toDate) {
+            setNotificationMessage("Start date cannot be ahead of the end date.");
+            return;
+        }
+
         setSubmittedFrom(fromDate);
         setSubmittedTo(toDate);
     }
@@ -314,7 +318,7 @@ export default function TransactionList() {
                 </form>
             )}
 
-            <TransactionFilterFetch onSearch={handleFilterSearch} />
+            <TransactionFilter onSearch={handleFilterSearch} />
 
             <div className="w-full flex flex-col gap-3 items-stretch">
                 {transactions.length === 0 ? (
