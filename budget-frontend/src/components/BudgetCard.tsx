@@ -183,13 +183,6 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
 
             <div className="flex justify-between items-center mt-0.5 w-full">
                 <div className="flex gap-4 items-end">
-                    <button
-                        onClick={handleEnableToggle}
-                        className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-6.5"
-                    >
-                        {isEnabled ? "Disable" : "Enable"}
-                    </button>
-
                     <div className="flex flex-col gap-1">
                         <input
                             type="number"
@@ -206,6 +199,13 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                             Withdraw
                         </button>
                     </div>
+
+                    <button
+                        onClick={handleEnableToggle}
+                        className="h-14 w-14 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors"
+                    >
+                        {isEnabled ? "Disable" : "Enable"}
+                    </button>
                 </div>
 
                 <button
