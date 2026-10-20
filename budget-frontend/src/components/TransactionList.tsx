@@ -39,8 +39,8 @@ export default function TransactionList() {
 
     const { currentUser } = useContext(AuthContext);
 
-    const isBankingRoute = pathname === '/dashboard/banking/transactions';
-    const isBudgetingRoute = pathname === '/dashboard/budgeting/transactions';
+    const isBankingRoute = pathname === '/banking/transactions';
+    const isBudgetingRoute = pathname === '/budgeting/transactions';
 
     async function fetchTransactionsList() {
         if (!currentUser) return;

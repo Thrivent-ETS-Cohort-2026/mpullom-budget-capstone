@@ -12,7 +12,7 @@ Ensure Docker Desktop is running before starting the container stack.
 1. **Build and start PostgreSQL database:**
    ```bash
    cd budget/budget-backend/src/main/java/com/example/budget/db && docker compose up -d
-```
+   ```
 
 2. **Build and start the application:**
    ```bash
@@ -21,9 +21,9 @@ Ensure Docker Desktop is running before starting the container stack.
 
 ## Run the Development Server
 - In a new terminal run the following command from the budget root directory.
-```bash
-cd budget-frontend && npm run dev
-```
+   ```bash
+   cd budget-frontend && npm run dev
+   ```
 
 ## Opening application in your browser
 Open http://localhost:3000 with your browser to see the result.

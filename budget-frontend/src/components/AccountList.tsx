@@ -35,7 +35,7 @@ export default function AccountList() {
 
     function handleSummary() {
         console.log("Viewing transactions summary");
-        router.push('/dashboard/banking/transactions');
+        router.push('/banking/transactions');
     }
 
     if (loading) {

@@ -35,7 +35,7 @@ export default function Login({ onSwitchToSignup }: LoginProps) {
 
             if (currentUser != null) {
                 setCurrentUser(currentUser);
-                router.push('/dashboard/banking');
+                router.push('/banking');
             } else {
                 setNotificationMessage("Invalid email or password. Please check your credentials.");
             }

@@ -58,7 +58,7 @@ export default function DashboardLayout({
 
                     <div className="flex border border-slate-700 rounded-lg overflow-hidden bg-slate-900/50">
                         <button
-                            onClick={() => router.push('/dashboard/banking')}
+                            onClick={() => router.push('/banking')}
                             className={`flex-1 py-3 text-center font-medium border-r border-slate-700 transition ${pathname === '/dashboard/banking'
                                 ? 'bg-sky-600 text-white shadow-inner'
                                 : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
@@ -68,7 +68,7 @@ export default function DashboardLayout({
                         </button>
 
                         <button
-                            onClick={() => router.push('/dashboard/budgeting')}
+                            onClick={() => router.push('/budgeting')}
                             className={`flex-1 py-3 text-center font-medium transition ${pathname === '/dashboard/budgeting'
                                 ? 'bg-sky-600 text-white shadow-inner'
                                 : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'

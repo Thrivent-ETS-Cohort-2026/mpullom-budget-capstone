@@ -43,7 +43,7 @@ export default function BudgetList() {
     }
 
     function handleTransactions() {
-        router.push('/dashboard/budgeting/transactions');
+        router.push('/budgeting/transactions');
     }
 
     if (loading) {
