@@ -107,4 +107,14 @@ public class BudgetService {
 
         return budgets.save(budget);
     }
+
+    @Transactional
+    public void deleteBudget(String token, Long budgetId) {
+
+        Budget budget = budgets.findById(budgetId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget " + budgetId + " not found"));
+
+        budgets.delete(budget);
+    }
 }

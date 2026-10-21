@@ -1,10 +1,15 @@
 import { useContext, useState } from "react";
 import { BudgetType, TargetPeriod, TransactionType } from "@/types/DataTypes";
-import { updateBudget } from "@/lib/budgetApi";
+import { updateBudget, deleteBudget } from "@/lib/budgetApi";
 import { createTransaction } from "@/lib/transactionApi";
 import { AuthContext } from "@/context/AuthContext";
 
-export default function BudgetCard({ budget }: { budget: BudgetType }) {
+interface BudgetCardProps {
+    budget: BudgetType;
+    onDeleted?: () => void;
+}
+
+export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
     if (!budget) return null;
 
     const [isEnabled, setIsEnabled] = useState(budget.enabled);
@@ -53,7 +58,7 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                     transactionType: TransactionType.BUDGET_WITHDRAWL,
                     amount: amount,
                     description: `Withdrawal from ${description || `Budget #${budget.id}`}`,
-                    recurrence: false
+                    recurrencePeriod: 0
                 };
 
                 await createTransaction(currentUser.token, transactionData);
@@ -108,6 +113,22 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
             }
         }
         setIsEditing(!isEditing);
+    }
+
+    async function handleDelete() {
+        if (currentUser != null && budget != null) {
+            try {
+                await deleteBudget(currentUser.token, budget.id);
+                if (onDeleted) {
+                    onDeleted();
+                }
+            } catch (err) {
+                console.error("Failed to delete budget:", err);
+                alert("Failed to delete budget.");
+            }
+        } else {
+            console.log("Null values: delete was rejected");
+        }
     }
 
     const percentage = (currentAmount / maxAmount) * 100;
@@ -208,15 +229,24 @@ export default function BudgetCard({ budget }: { budget: BudgetType }) {
                     </button>
                 </div>
 
-                <button
-                    onClick={handleEdit}
-                    className={`px-3 py-1 text-xs font-medium rounded text-white transition-colors mr-6 h-6.5 ${isEditing
-                        ? "bg-emerald-600 hover:bg-emerald-700"
-                        : "bg-sky-700 hover:bg-sky-800"
-                        }`}
-                >
-                    {isEditing ? "Accept Changes" : "Edit"}
-                </button>
+                <div className="flex items-center gap-2 mr-6">
+                    <button
+                        onClick={handleEdit}
+                        className={`px-3 py-1 text-xs font-medium rounded text-white transition-colors h-6.5 ${isEditing
+                            ? "bg-emerald-600 hover:bg-emerald-700"
+                            : "bg-sky-700 hover:bg-sky-800"
+                            }`}
+                    >
+                        {isEditing ? "Accept Changes" : "Edit"}
+                    </button>
+
+                    <button
+                        onClick={handleDelete}
+                        className="px-3 py-1 text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 transition-colors h-6.5"
+                    >
+                        Delete
+                    </button>
+                </div>
             </div>
         </div>
     );

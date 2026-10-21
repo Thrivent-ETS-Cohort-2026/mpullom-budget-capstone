@@ -1,7 +1,9 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+import { Transaction } from "@/types/DataTypes";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/transactions';
 
 export async function getTransactions(token: string, fromDate?: string, toDate?: string) {
-    let url = `${BASE_URL}/transactions`;
+    let url = `${BASE_URL}`;
     const params = new URLSearchParams();
 
     if (fromDate) {
@@ -34,41 +36,46 @@ export async function getTransactions(token: string, fromDate?: string, toDate?:
 
 export async function createTransaction(token: string, transactionData: {
     account?: { accountNumber: number };
-    budget: { id: number };
+    budget?: { id: number };
     transactionType: string;
     amount: number;
-    recurrence: boolean;
+    recurrencePeriod: number;
     description: string;
     timestamp?: string;
-}) {
-    const response = await fetch(`${BASE_URL}/transactions`, {
+}): Promise<Transaction> {
+    const response = await fetch(BASE_URL, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
         },
         body: JSON.stringify(transactionData)
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Backend validation error:", errorText);
-        throw new Error(`Failed to create transaction: ${errorText}`);
+        const errorBody = await response.text();
+        throw new Error(`Failed to create transaction: ${errorBody}`);
     }
 
     return response.json();
 }
 
-export async function deleteTransaction(token: string, transactionId: number) {
-    const response = await fetch(`${BASE_URL}/transactions/${transactionId}`, {
+export async function deleteTransaction(token: string, transactionId: number): Promise<void> {
+    const response = await fetch(`${BASE_URL}/${transactionId}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
     });
-    if (!response.ok) throw new Error("Failed to delete transaction");
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Failed to delete transaction: ${errorBody}`);
+    }
 }
 
 export async function updateTransaction(token: string, transactionId: number, updatedTransaction: any) {
-    const response = await fetch(`${BASE_URL}/transactions/${transactionId}`, {
+    const response = await fetch(`${BASE_URL}/${transactionId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",

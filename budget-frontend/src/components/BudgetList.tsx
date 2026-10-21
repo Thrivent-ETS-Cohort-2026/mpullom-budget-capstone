@@ -46,6 +46,10 @@ export default function BudgetList() {
         router.push('/budgeting/transactions');
     }
 
+    function handleBudgetDeleted(budgetId: number) {
+        setBudgets(prevBudgets => prevBudgets.filter(b => b.id !== budgetId));
+    }
+
     if (loading) {
         return <main className="p-4">Loading budgets...</main>;
     }
@@ -63,7 +67,7 @@ export default function BudgetList() {
                     </button>
                     <button 
                         onClick={handleCreateBudget}
-                        className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow transition-colors"
+                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
                     >
                         Create Budget
                     </button>
@@ -78,6 +82,7 @@ export default function BudgetList() {
                         <BudgetCard
                             key={budget.id}
                             budget={budget}
+                            onDeleted={() => handleBudgetDeleted(budget.id)}
                         />
                     ))
                 )}

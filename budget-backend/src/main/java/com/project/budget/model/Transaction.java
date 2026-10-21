@@ -26,10 +26,6 @@ public class Transaction {
     @JoinColumn(name = "account_number", nullable = false)
     private Account account;
 
-    @ManyToOne
-    @JoinColumn(name = "budget_id", nullable = false)
-    private Budget budget;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
@@ -40,8 +36,8 @@ public class Transaction {
     @Column(name = "time_stamp", nullable = false)
     private LocalDateTime timestamp;
 
-    @Column(name = "reccurence", nullable = false)
-    private Boolean recurrence;
+    @Column(name = "recurrence_period", nullable = false)
+    private Long recurrencePeriod;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -49,7 +45,8 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(Account account, Budget budget, TransactionType transactionType, Double amount, Boolean recurrence, String description, LocalDateTime timestamp) {
+    public Transaction(Account account, Budget budget, TransactionType transactionType, Double amount,
+            Long recurrencePeriod, String description, LocalDateTime timestamp) {
         if (account == null) {
             throw new IllegalArgumentException("Account cannot be null.");
         }
@@ -59,15 +56,17 @@ public class Transaction {
         if (amount == null || amount < 0) {
             throw new IllegalArgumentException("Amount must be non-null and positive. Provided: " + amount);
         }
+        if (recurrencePeriod == null || recurrencePeriod < 0) {
+            throw new IllegalArgumentException("Reccurence period must be non-null and positive. Provided: " + recurrencePeriod);
+        }
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("Description cannot be null or empty.");
         }
- 
+
         this.account = account;
-        this.budget = budget;
         this.transactionType = transactionType;
         this.amount = amount;
-        this.recurrence = (recurrence != null) ? recurrence : false;
+        this.recurrencePeriod = recurrencePeriod;
         this.description = description;
         this.timestamp = (timestamp != null) ? timestamp : LocalDateTime.now();
     }
@@ -86,14 +85,6 @@ public class Transaction {
 
     public void setAccount(Account account) {
         this.account = account;
-    }
-
-    public Budget getBudget() {
-        return budget;
-    }
-
-    public void setBudget(Budget budget) {
-        this.budget = budget;
     }
 
     public TransactionType getTransactionType() {
@@ -120,12 +111,12 @@ public class Transaction {
         this.timestamp = timestamp;
     }
 
-    public Boolean getRecurrence() {
-        return recurrence;
+    public Long getRecurrencePeriod() {
+        return recurrencePeriod;
     }
 
-    public void setRecurrence(Boolean recurrence) {
-        this.recurrence = recurrence;
+    public void setRecurrencePeriod(Long recurrencePeriod) {
+        this.recurrencePeriod = recurrencePeriod;
     }
 
     public String getDescription() {

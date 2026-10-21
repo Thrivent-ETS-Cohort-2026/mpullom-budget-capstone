@@ -10,11 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.project.budget.dto.BudgetRequest;
 import com.project.budget.dto.TransactionRequest;
 import com.project.budget.model.Account;
 import com.project.budget.model.Budget;
-import com.project.budget.model.TargetPeriod;
 import com.project.budget.model.Transaction;
 import com.project.budget.model.TransactionType;
 import com.project.budget.model.User;
@@ -32,21 +30,18 @@ public class TransactionService {
     private final BudgetRepository budgets;
     private final UserService userService;
     private final AccountService accountService;
-    private final BudgetService budgetService;
 
     public TransactionService(
             TransactionRepository transactions,
             AccountRepository accounts,
             BudgetRepository budgets,
             UserService userService,
-            AccountService accountService,
-            BudgetService budgetService) {
+            AccountService accountService) {
         this.transactions = transactions;
         this.accounts = accounts;
         this.budgets = budgets;
         this.userService = userService;
         this.accountService = accountService;
-        this.budgetService = budgetService;
     }
 
     @Transactional
@@ -97,7 +92,7 @@ public class TransactionService {
                 double updatedBudgetSpent = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount()
                         : 0.0) + request.amount();
                 targetBudget.setCurrentAmount(updatedBudgetSpent);
-                budgetService.updateBudgetAmount(token, targetBudget.getId(), updatedBudgetSpent);
+                budgets.save(targetBudget);
                 break;
 
             case ACCOUNT_DEPOSIT:
@@ -132,7 +127,7 @@ public class TransactionService {
                 double newBudgetAmount = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount()
                         : 0.0) + request.amount();
                 targetBudget.setCurrentAmount(newBudgetAmount);
-                budgetService.updateBudgetAmount(token, targetBudget.getId(), newBudgetAmount);
+                budgets.save(targetBudget);
                 break;
 
             case BUDGET_WITHDRAWL:
@@ -151,7 +146,7 @@ public class TransactionService {
                         (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount() : 0.0)
                                 - request.amount());
                 targetBudget.setCurrentAmount(reducedBudgetAmt);
-                budgetService.updateBudgetAmount(token, targetBudget.getId(), reducedBudgetAmt);
+                budgets.save(targetBudget);
                 break;
 
             default:
@@ -163,7 +158,7 @@ public class TransactionService {
                 targetBudget,
                 type,
                 request.amount(),
-                request.recurrence(),
+                request.recurrencePeriod(),
                 request.description(),
                 (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now());
 
@@ -221,7 +216,7 @@ public class TransactionService {
                 List<Predicate> recurringPredicates = new ArrayList<>();
                 recurringPredicates.add(
                         criteriaBuilder.equal(root.get("account").get("user").get("id"), authenticatedUser.getId()));
-                recurringPredicates.add(criteriaBuilder.equal(root.get("recurrence"), true));
+                recurringPredicates.add(criteriaBuilder.greaterThan(root.get("recurrencePeriod"), 0L));
                 recurringPredicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("timestamp"), now));
 
                 if (type != null) {
@@ -235,9 +230,14 @@ public class TransactionService {
 
             for (Transaction baseTx : baseRecurring) {
                 LocalDateTime nextOccurrence = baseTx.getTimestamp();
+                Long periodDays = baseTx.getRecurrencePeriod();
+
+                if (periodDays == null || periodDays <= 0) {
+                    continue;
+                }
 
                 while (true) {
-                    nextOccurrence = advanceOccurrence(nextOccurrence, baseTx.getBudget());
+                    nextOccurrence = advanceOccurrence(nextOccurrence, periodDays);
 
                     if (nextOccurrence.isAfter(end)) {
                         break;
@@ -246,10 +246,10 @@ public class TransactionService {
                     if (nextOccurrence.isAfter(now) && !nextOccurrence.isBefore(start)) {
                         Transaction projectedTx = new Transaction(
                                 baseTx.getAccount(),
-                                baseTx.getBudget(),
+                                null,
                                 baseTx.getTransactionType(),
                                 baseTx.getAmount(),
-                                true,
+                                baseTx.getRecurrencePeriod(),
                                 baseTx.getDescription() + " (Projected)",
                                 nextOccurrence);
                         resultList.add(projectedTx);
@@ -262,21 +262,9 @@ public class TransactionService {
         return resultList;
     }
 
-    private LocalDateTime advanceOccurrence(LocalDateTime current, Budget budget) {
-        if (budget != null && budget.getTargetPeriod() != null) {
-            TargetPeriod period = budget.getTargetPeriod();
-            switch (period) {
-                case MONTHLY:
-                    return current.plusWeeks(1);
-                case QUARTERLY:
-                    return current.plusMonths(1);
-                case YEARLY:
-                    return current.plusYears(1);
-                default:
-                    return current.plusMonths(1);
-            }
-        }
-        return current.plusMonths(1);
+    private LocalDateTime advanceOccurrence(LocalDateTime current, Long recurrencePeriodDays) {
+        long days = (recurrencePeriodDays != null && recurrencePeriodDays > 0) ? recurrencePeriodDays : 30L;
+        return current.plusDays(days);
     }
 
     private void validateOwnership(Account account, User user) {
@@ -291,7 +279,7 @@ public class TransactionService {
         }
     }
 
-   @Transactional
+    @Transactional
     public void deleteTransaction(String token, Long id) {
         Transaction transaction = transactions.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction " + id + " not found"));
@@ -301,7 +289,9 @@ public class TransactionService {
         if (transaction.getAccount() != null && transaction.getTransactionType() != null) {
             Account account = transaction.getAccount();
             Long accountNumber = account.getAccountNumber(); 
-            double updatedBalance = account.getBalance();
+            double currentBalance = account.getBalance();
+            double updatedBalance = currentBalance;
+
             switch (transaction.getTransactionType()) {
                 case ACCOUNT_DEPOSIT:
                     updatedBalance -= amount;
@@ -314,32 +304,6 @@ public class TransactionService {
             }
 
             accountService.updateAccountBalance(token, accountNumber, updatedBalance);
-        }
-
-        if (transaction.getBudget() != null && transaction.getBudget().getId() != 0 && transaction.getTransactionType() != null) {
-            Long budgetId = transaction.getBudget().getId();
-            Budget budget = transaction.getBudget();
-
-            double updatedAmount = budget.getCurrentAmount();
-            switch (transaction.getTransactionType()) {
-                case BUDGET_TRANSFER:
-                    updatedAmount -= amount;
-                    break;
-                case BUDGET_WITHDRAWL:
-                    updatedAmount += amount;
-                    break;
-                default:
-                    break;
-            }
-
-            budgetService.updateBudgetByID(token, budgetId, new BudgetRequest(
-                    budget.getUser(),
-                    budget.getDescription(),
-                    budget.getTargetPeriod(),
-                    updatedAmount,
-                    budget.getMaxAmount(),
-                    budget.getEnabled()
-            ));
         }
 
         transactions.delete(transaction);

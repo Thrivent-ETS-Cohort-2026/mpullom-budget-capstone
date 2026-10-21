@@ -66,4 +66,19 @@ public class BudgetController {
         Budget updatedBudget = budgetService.updateBudgetByID(token, id, budgetUpdates);
         return ResponseEntity.ok(updatedBudget);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBudget(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+
+        budgetService.deleteBudget(token, id);
+        return ResponseEntity.noContent().build();
+    }
 }

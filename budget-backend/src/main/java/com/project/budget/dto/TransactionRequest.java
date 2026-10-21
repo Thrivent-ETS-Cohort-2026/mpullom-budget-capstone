@@ -24,7 +24,7 @@ public record TransactionRequest(
     Double amount,
 
     @NotNull(message = "Recurrence indicator is required")
-    Boolean recurrence,
+    Long recurrencePeriod,
 
     @NotBlank(message = "Description cannot be empty")
     String description,

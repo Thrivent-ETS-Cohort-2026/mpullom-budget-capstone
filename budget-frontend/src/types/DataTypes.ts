@@ -45,11 +45,10 @@ export enum TransactionType {
 export interface Transaction {
     transactionId?: number;
     account?: Account;
-    budget?: BudgetType;
     transactionType: TransactionType;
     amount: number;
     timestamp?: string
-    recurrence: boolean;
+    recurrencePeriod: number;
     description: string;
 }
 

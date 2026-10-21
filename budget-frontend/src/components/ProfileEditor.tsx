@@ -1,6 +1,6 @@
 'use client'
 import { useContext, useState } from "react";
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { createUser, updateUser } from '@/lib/userApi';
 import { AuthContext } from "@/context/AuthContext";
 import Notification from "./Notification";
@@ -58,7 +58,7 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
     }
 
     async function handleEdit() {
-        if (pathname.startsWith('/dashboard')) {
+        if ((pathname == '/budgeting') || (pathname == '/banking')){
             if (currentUser == null) {
                 console.log("Skipping edit as current user is null");
                 return;
@@ -108,115 +108,115 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                 onClose={() => setNotificationMessage("")}
             />
 
-            <div className="relative w-full max-w-xl max-h-[85vh] overflow-y-auto p-6 bg-sky-400 rounded-2xl shadow-2xl border border-slate-600 flex flex-col gap-4">
+            <div className="relative w-full max-w-xl max-h-[85vh] bg-sky-400 rounded-2xl shadow-2xl border border-slate-600 flex flex-col">
 
-                {pathname === '/' && (
-                    <div className="flex items-center justify-between pb-2 border-b border-sky-300/60">
-                        <button
-                            type="button"
-                            onClick={onSwitchToLogin}
-                            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 cursor-pointer"
-                        >
-                            ← Back
-                        </button>
-                        <h2 className="text-lg font-bold text-slate-800">Sign Up</h2>
+                <div className="px-6 pt-6 pb-3 border-b border-sky-300/60 flex items-center justify-between shrink-0">
+                    {pathname === '/' ? (
+                        <>
+                            <button
+                                type="button"
+                                onClick={onSwitchToLogin}
+                                className="px-3 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 cursor-pointer"
+                            >
+                                ← Back
+                            </button>
+                            <h2 className="text-lg font-bold text-slate-900">Sign Up</h2>
+                            <div className="w-12"></div>
+                        </>
+                    ) : (
+                        <>
+                            <h2 className="text-lg font-bold text-slate-900">Edit Profile</h2>
+                            <button
+                                type="button"
+                                onClick={onSwitchToLogin}
+                                className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-md transition text-sm font-bold cursor-pointer shrink-0"
+                                title="Close"
+                            >
+                                ✕
+                            </button>
+                        </>
+                    )}
+                </div>
+
+                <div className="px-6 py-4 overflow-y-auto flex flex-col gap-3 flex-1">
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-slate-900">First Name</label>
+                        <input
+                            type="text"
+                            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                            placeholder="Firstname"
+                            value={firstNameInput}
+                            onChange={(e) => setFirstNameInput(e.target.value)}
+                        />
                     </div>
-                )}
 
-                {pathname?.startsWith('/dashboard') && (
-                    <div className="flex items-center justify-between pb-2 border-b border-sky-300/60">
-                        <h2 className="text-lg font-bold text-slate-800">Edit Profile</h2>
-                        <button
-                            type="button"
-                            onClick={onSwitchToLogin}
-                            className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md transition text-sm font-bold cursor-pointer"
-                            title="Close"
-                        >
-                            ✕
-                        </button>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-slate-900">Last Name</label>
+                        <input
+                            type="text"
+                            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                            placeholder="Lastname"
+                            value={lastNameInput}
+                            onChange={(e) => setLastNameInput(e.target.value)}
+                        />
                     </div>
-                )}
 
-                <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">First Name</label>
-                    <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                        placeholder="Firstname"
-                        value={firstNameInput}
-                        onChange={(e) => setFirstNameInput(e.target.value)}
-                    />
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-slate-900">Phone Number</label>
+                        <input
+                            type="tel"
+                            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                            placeholder="Phone Number"
+                            value={phoneNumberInput}
+                            onChange={(e) => setPhoneNumberInput(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-slate-900">Email</label>
+                        <input
+                            type="email"
+                            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                            placeholder="you@example.com"
+                            value={emailInput}
+                            onChange={(e) => setEmailInput(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-slate-900">
+                            {pathname.startsWith('/dashboard') ? "New Password" : "Password"}
+                        </label>
+                        <input
+                            type="password"
+                            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                            placeholder="••••••••"
+                            value={passInput}
+                            onChange={(e) => setPassInput(e.target.value)}
+                        />
+                    </div>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">Last Name</label>
-                    <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                        placeholder="Lastname"
-                        value={lastNameInput}
-                        onChange={(e) => setLastNameInput(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">Phone Number</label>
-                    <input
-                        type="tel"
-                        className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                        placeholder="Phone Number"
-                        value={phoneNumberInput}
-                        onChange={(e) => setPhoneNumberInput(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">Email</label>
-                    <input
-                        type="email"
-                        className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                        placeholder="you@example.com"
-                        value={emailInput}
-                        onChange={(e) => setEmailInput(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">
-                        {pathname.startsWith('/dashboard') ? "New Password" : "Password"}
-                    </label>
-                    <input
-                        type="password"
-                        className="w-full px-4 py-2 bg-slate-600 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                        placeholder="••••••••"
-                        value={passInput}
-                        onChange={(e) => setPassInput(e.target.value)}
-                    />
-                </div>
-
-                {pathname === "/" && (
-                    <div className="flex gap-4 pt-2">
+                <div className="px-6 py-4 border-t rounded-b-2xl border-sky-300/60 shrink-0 bg-sky-400">
+                    {pathname === "/" ? (
                         <button
                             type="button"
-                            className="flex-1 py-2.5 px-4 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-800 transition"
+                            className="w-full py-2.5 px-4 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-900 transition cursor-pointer shadow"
                             onClick={handleSignUp}
                         >
                             Accept
                         </button>
-                    </div>
-                )}
-
-                {pathname.startsWith('/dashboard') && (
-                    <div className="flex gap-4 pt-2">
+                    ) : (
                         <button
                             type="button"
-                            className="flex-1 py-2.5 px-4 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-800 transition"
+                            className="w-full py-2.5 px-4 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-900 transition cursor-pointer shadow"
                             onClick={handleEdit}
                         >
                             Accept Changes
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
+
             </div>
         </div>
     );

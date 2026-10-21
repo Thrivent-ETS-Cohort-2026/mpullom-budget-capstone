@@ -46,12 +46,14 @@ export default function AccountList() {
         <main className="p-4 w-full">
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Banking</h1>
-                <button
-                    onClick={handleSummary}
-                    className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors h-6.5"
-                >
-                    Transactions
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleSummary}
+                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                    >
+                        Transactions
+                    </button>
+                </div>
             </div>
 
             <div className="w-full flex flex-col gap-3 items-stretch">

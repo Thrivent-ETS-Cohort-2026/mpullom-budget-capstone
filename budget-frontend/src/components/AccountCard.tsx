@@ -68,7 +68,7 @@ export default function AccountCard({ account }: { account: Account }) {
                     transactionType: transactionType,
                     amount: amount,
                     description: `${isDeposit ? "Deposit to" : "Withdrawal from"} Account #${account.accountNumber}`,
-                    recurrence: false
+                    recurrencePeriod: 0
                 };
 
                 await createTransaction(currentUser.token, transactionData);
@@ -116,7 +116,7 @@ export default function AccountCard({ account }: { account: Account }) {
                     transactionType: TransactionType.BUDGET_TRANSFER,
                     amount: amount,
                     description: `Transfer from Account #${account.accountNumber} using Budget #${selectedAccountBudget}`,
-                    recurrence: false
+                    recurrencePeriod: 0
                 };
 
                 await createTransaction(currentUser.token, transactionData);
@@ -279,7 +279,6 @@ export default function AccountCard({ account }: { account: Account }) {
                         </div>
                     </div>
 
-                    {/* Column 4: Standalone Account-to-Account Transfer */}
                     <div className="col-span-1 flex flex-col gap-1">
                         <label className="text-xs font-medium text-sky-200 truncate">Target Transfer Account</label>
                         <select

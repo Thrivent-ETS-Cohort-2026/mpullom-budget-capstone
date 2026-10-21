@@ -61,3 +61,24 @@ export async function createBudget(user: User): Promise<void> {
         throw new Error(error.message || "An unexpected error occurred.");
     }
 }
+
+export async function deleteBudget(token: string, budgetId: number): Promise<void> {
+    try {
+        const response = await fetch(`${BASE_URL}/${budgetId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error(`Backend delete failed [Status ${response.status}]:`, errorBody);
+            throw new Error(`Failed to delete budget: ${response.statusText} (${errorBody})`);
+        }
+    } catch (error) {
+        console.error("Network or execution error during deleteBudget:", error);
+        throw error;
+    }
+}
