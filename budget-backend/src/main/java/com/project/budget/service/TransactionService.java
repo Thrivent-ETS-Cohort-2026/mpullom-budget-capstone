@@ -12,12 +12,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.project.budget.dto.TransactionRequest;
 import com.project.budget.model.Account;
-import com.project.budget.model.Budget;
 import com.project.budget.model.Transaction;
 import com.project.budget.model.TransactionType;
 import com.project.budget.model.User;
 import com.project.budget.repository.AccountRepository;
-import com.project.budget.repository.BudgetRepository;
 import com.project.budget.repository.TransactionRepository;
 
 import jakarta.persistence.criteria.Predicate;
@@ -27,19 +25,16 @@ public class TransactionService {
 
     private final TransactionRepository transactions;
     private final AccountRepository accounts;
-    private final BudgetRepository budgets;
     private final UserService userService;
     private final AccountService accountService;
 
     public TransactionService(
             TransactionRepository transactions,
             AccountRepository accounts,
-            BudgetRepository budgets,
             UserService userService,
             AccountService accountService) {
         this.transactions = transactions;
         this.accounts = accounts;
-        this.budgets = budgets;
         this.userService = userService;
         this.accountService = accountService;
     }
@@ -58,16 +53,6 @@ public class TransactionService {
         if (request.amount() == null || request.amount() <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero.");
         }
-
-        if (request.budget() == null || request.budget().getId() == null) {
-            throw new IllegalArgumentException("A budget must be specified for all transactions.");
-        }
-
-        Budget targetBudget = budgets.findById(request.budget().getId())
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Budget not found with ID: " + request.budget().getId()));
-
-        validateBudgetOwnership(targetBudget, authenticatedUser);
 
         Account targetAccount = null;
         TransactionType type = request.transactionType();
@@ -89,10 +74,6 @@ public class TransactionService {
                 accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
                         targetAccount.getBalance() - request.amount());
 
-                double updatedBudgetSpent = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount()
-                        : 0.0) + request.amount();
-                targetBudget.setCurrentAmount(updatedBudgetSpent);
-                budgets.save(targetBudget);
                 break;
 
             case ACCOUNT_DEPOSIT:
@@ -124,10 +105,6 @@ public class TransactionService {
                 accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
                         targetAccount.getBalance() - request.amount());
 
-                double newBudgetAmount = (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount()
-                        : 0.0) + request.amount();
-                targetBudget.setCurrentAmount(newBudgetAmount);
-                budgets.save(targetBudget);
                 break;
 
             case BUDGET_WITHDRAWL:
@@ -142,11 +119,6 @@ public class TransactionService {
                 accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
                         targetAccount.getBalance() - request.amount());
 
-                double reducedBudgetAmt = Math.max(0.0,
-                        (targetBudget.getCurrentAmount() != null ? targetBudget.getCurrentAmount() : 0.0)
-                                - request.amount());
-                targetBudget.setCurrentAmount(reducedBudgetAmt);
-                budgets.save(targetBudget);
                 break;
 
             default:
@@ -155,8 +127,7 @@ public class TransactionService {
 
         Transaction transaction = new Transaction(
                 targetAccount,
-                targetBudget,
-                type,
+                request.transactionType(),
                 request.amount(),
                 request.recurrencePeriod(),
                 request.description(),
@@ -246,7 +217,6 @@ public class TransactionService {
                     if (nextOccurrence.isAfter(now) && !nextOccurrence.isBefore(start)) {
                         Transaction projectedTx = new Transaction(
                                 baseTx.getAccount(),
-                                null,
                                 baseTx.getTransactionType(),
                                 baseTx.getAmount(),
                                 baseTx.getRecurrencePeriod(),
@@ -270,12 +240,6 @@ public class TransactionService {
     private void validateOwnership(Account account, User user) {
         if (!account.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to this account.");
-        }
-    }
-
-    private void validateBudgetOwnership(Budget budget, User user) {
-        if (!budget.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to this budget.");
         }
     }
 

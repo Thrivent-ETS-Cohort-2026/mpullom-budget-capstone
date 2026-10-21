@@ -13,9 +13,6 @@ public record TransactionRequest(
     @NotNull(message = "Account is required")
     AccountRef account,
 
-    @NotNull(message = "Budget is required")
-    BudgetRef budget,
-
     @NotNull(message = "Transaction type is required")
     TransactionType transactionType,
 

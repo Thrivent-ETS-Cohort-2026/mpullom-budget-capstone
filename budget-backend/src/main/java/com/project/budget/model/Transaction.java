@@ -45,13 +45,10 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(Account account, Budget budget, TransactionType transactionType, Double amount,
+    public Transaction(Account account, TransactionType transactionType, Double amount,
             Long recurrencePeriod, String description, LocalDateTime timestamp) {
         if (account == null) {
             throw new IllegalArgumentException("Account cannot be null.");
-        }
-        if (budget == null) {
-            throw new IllegalArgumentException("Budget cannot be null.");
         }
         if (amount == null || amount < 0) {
             throw new IllegalArgumentException("Amount must be non-null and positive. Provided: " + amount);
