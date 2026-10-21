@@ -213,97 +213,96 @@ export default function AccountCard({ account }: { account: Account }) {
             <div className="flex flex-col gap-2 mt-1">
                 <div className="grid grid-cols-4 gap-3 w-full items-end">
 
-                    <div className="col-span-3 grid grid-cols-3 gap-3 w-full">
-                        <div></div>
+                    <div></div>
 
-                        <div className="col-span-2 flex flex-col gap-1 w-full">
-                            <label className="text-xs font-medium text-sky-200">Account Budget Specification</label>
-                            <select
-                                value={selectedAccountBudget}
-                                onChange={(e) => setSelectedAccountBudget(e.target.value)}
-                                className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-full"
-                            >
-                                <option value="" disabled>Select a budget for withdrawals/transfers</option>
-                                {allBudgets.map(b => (
-                                    <option key={`account-budget-${b.id}`} value={b.id}>
-                                        {b.description || `Budget #${b.id}`}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Deposit Column */}
-                        <div className="flex flex-col gap-1">
-                            <input
-                                type="number"
-                                placeholder="Deposit amount"
-                                value={depositAmount}
-                                onChange={(e) => setDepositAmount(e.target.value)}
-                                disabled={isWithdrawTyping || isTransferTyping || isAccountTransferTyping}
-                                className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
-                            />
-                            <button
-                                onClick={() => handleBalanceChange(true)}
-                                className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
-                            >
-                                Deposit
-                            </button>
-                        </div>
-
-                        {/* Withdraw Column */}
-                        <div className="flex flex-col gap-1">
-                            <input
-                                type="number"
-                                placeholder="Withdraw amount"
-                                value={withdrawAmount}
-                                onChange={(e) => setWithdrawAmount(e.target.value)}
-                                disabled={isDepositTyping || isTransferTyping || isAccountTransferTyping}
-                                className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
-                            />
-                            <button
-                                onClick={() => handleBalanceChange(false)}
-                                className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
-                            >
-                                Withdraw
-                            </button>
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                            <input
-                                type="number"
-                                placeholder="Transfer amount"
-                                value={transferAmount}
-                                onChange={(e) => setTransferAmount(e.target.value)}
-                                disabled={isDepositTyping || isWithdrawTyping || isAccountTransferTyping}
-                                className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
-                            />
-                            <button
-                                onClick={handleTransfer}
-                                className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
-                            >
-                                budget_transfer
-                            </button>
-                        </div>
+                    <div className="col-span-2 flex flex-col gap-1 w-full">
+                        <label className="text-xs font-medium text-sky-200">Associated Budget</label>
+                        <select
+                            value={selectedAccountBudget}
+                            onChange={(e) => setSelectedAccountBudget(e.target.value)}
+                            className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-full"
+                        >
+                            <option value="" disabled>Select Associated Budget</option>
+                            {allBudgets.map(b => (
+                                <option key={`account-budget-${b.id}`} value={b.id}>
+                                    {b.description || `Budget #${b.id}`}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
-                    <div className="col-span-1 flex flex-col gap-1">
-                        <label className="text-xs font-medium text-sky-200 truncate">Target Transfer Account</label>
+                    <div className="flex flex-col gap-1 w-full">
+                        <label className="text-xs font-medium text-sky-200 truncate">Target Account</label>
                         <select
                             value={selectedTargetAccount}
                             onChange={(e) => setSelectedTargetAccount(e.target.value)}
                             disabled={isDepositTyping || isWithdrawTyping || isTransferTyping}
                             className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
                         >
-                            <option value="" disabled>Select Target</option>
+                            <option value="" disabled>Select Account</option>
                             {allAccounts.map(acc => (
                                 <option key={`target-acc-${acc.accountNumber}`} value={acc.accountNumber}>
                                     {acc.accountType} (#{acc.accountNumber})
                                 </option>
                             ))}
                         </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
                         <input
                             type="number"
-                            placeholder="Acct transfer amt"
+                            placeholder="Deposit Amount"
+                            value={depositAmount}
+                            onChange={(e) => setDepositAmount(e.target.value)}
+                            disabled={isWithdrawTyping || isTransferTyping || isAccountTransferTyping}
+                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
+                        />
+                        <button
+                            onClick={() => handleBalanceChange(true)}
+                            className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
+                        >
+                            Deposit
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <input
+                            type="number"
+                            placeholder="Withdraw Amount"
+                            value={withdrawAmount}
+                            onChange={(e) => setWithdrawAmount(e.target.value)}
+                            disabled={isDepositTyping || isTransferTyping || isAccountTransferTyping}
+                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
+                        />
+                        <button
+                            onClick={() => handleBalanceChange(false)}
+                            className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
+                        >
+                            Withdraw
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <input
+                            type="number"
+                            placeholder="Fund Amount"
+                            value={transferAmount}
+                            onChange={(e) => setTransferAmount(e.target.value)}
+                            disabled={isDepositTyping || isWithdrawTyping || isAccountTransferTyping}
+                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
+                        />
+                        <button
+                            onClick={handleTransfer}
+                            className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
+                        >
+                            Fund Budget
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <input
+                            type="number"
+                            placeholder="Transfer Amount"
                             value={accountTransferAmount}
                             onChange={(e) => setAccountTransferAmount(e.target.value)}
                             disabled={isDepositTyping || isWithdrawTyping || isTransferTyping}
@@ -313,7 +312,7 @@ export default function AccountCard({ account }: { account: Account }) {
                             onClick={handleAccountTransfer}
                             className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full"
                         >
-                            Acct Transfer
+                            Transfer
                         </button>
                     </div>
 
