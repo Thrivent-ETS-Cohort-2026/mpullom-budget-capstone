@@ -32,7 +32,8 @@ export default function TransactionList() {
     const [transactionType, setTransactionType] = useState<TransactionType>(TransactionType.ACCOUNT_DEPOSIT);
     const [amount, setAmount] = useState<string>("");
     const [description, setDescription] = useState<string>("");
-    const [recurrence, setRecurrence] = useState<boolean>(false);
+    
+    const [recurrencePeriod, setRecurrencePeriod] = useState<number>(0);
 
     const [transactionDate, setTransactionDate] = useState<string>("");
     const [transactionTime, setTransactionTime] = useState<string>("");
@@ -41,6 +42,8 @@ export default function TransactionList() {
 
     const isBankingRoute = pathname === '/banking/transactions';
     const isBudgetingRoute = pathname === '/budgeting/transactions';
+
+    const requiresBudget = transactionType === TransactionType.ACCOUNT_WITHDRAWL || transactionType === TransactionType.BUDGET_TRANSFER;
 
     async function fetchTransactionsList() {
         if (!currentUser) return;
@@ -99,15 +102,19 @@ export default function TransactionList() {
         e.preventDefault();
         if (!currentUser) return;
 
-        if (!budgetId || budgetId === 0) {
-            setNotificationMessage("Please select a valid budget.");
-            return;
-        }
+        let selectedBudget: BudgetType | undefined = undefined;
 
-        const selectedBudget = budgets.find(b => b.id === Number(budgetId));
-        if (selectedBudget && selectedBudget.enabled === false) {
-            setNotificationMessage("Cannot create a transaction for a disabled budget.");
-            return;
+        if (requiresBudget) {
+            if (!budgetId || budgetId === 0) {
+                setNotificationMessage("Please select a budget from the dropdown above before submitting this transaction.");
+                return;
+            }
+
+            selectedBudget = budgets.find(b => b.id === Number(budgetId));
+            if (selectedBudget && selectedBudget.enabled === false) {
+                setNotificationMessage("Cannot create a transaction for a disabled budget.");
+                return;
+            }
         }
 
         if (transactionType !== TransactionType.BUDGET_WITHDRAWL && (!accountNumber || accountNumber === 0)) {
@@ -122,14 +129,32 @@ export default function TransactionList() {
                 formattedTimestamp = `${transactionDate}T${timePart}`;
             }
 
+            let finalDescription = description ? description.trim() : "";
+            if (requiresBudget && selectedBudget) {
+                const budgetIdentifier = selectedBudget.description || `Budget #${selectedBudget.id}`;
+                const defaultPrefix = transactionType === TransactionType.BUDGET_TRANSFER 
+                    ? `Transfer from Account #${accountNumber} using ${budgetIdentifier}`
+                    : `Withdrawal from Account #${accountNumber} - [${budgetIdentifier}]`;
+
+                finalDescription = finalDescription ? `${finalDescription} - [${budgetIdentifier}]` : defaultPrefix;
+            } else if (!requiresBudget && accountNumber > 0) {
+                const defaultPrefix = transactionType === TransactionType.ACCOUNT_DEPOSIT 
+                    ? `Deposit to Account #${accountNumber}` 
+                    : `Withdrawal from Account #${accountNumber}`;
+                finalDescription = finalDescription ? `${finalDescription}` : defaultPrefix;
+            }
+
             const transactionData: any = {
-                budget: { id: Number(budgetId) },
                 transactionType,
                 amount: parseFloat(amount) || 0,
-                recurrence,
-                description: description || "",
+                recurrencePeriod: Number(recurrencePeriod) || 0,
+                description: finalDescription,
                 timestamp: formattedTimestamp
             };
+
+            if (requiresBudget) {
+                transactionData.budget = { id: Number(budgetId) };
+            }
 
             if (transactionType !== TransactionType.BUDGET_WITHDRAWL) {
                 transactionData.account = { accountNumber: Number(accountNumber) };
@@ -140,7 +165,7 @@ export default function TransactionList() {
             setIsCreating(false);
             setAmount("");
             setDescription("");
-            setRecurrence(false);
+            setRecurrencePeriod(0);
             setBudgetId(0);
             setAccountNumber(accounts.length > 0 ? accounts[0].accountNumber : 0);
             setTransactionDate("");
@@ -178,10 +203,12 @@ export default function TransactionList() {
                     <CsvDownloader transactions={transactions} />
                     <button
                         onClick={() => setIsCreating(!isCreating)}
-                        className={`px-4 py-2 text-sm font-medium rounded text-white transition-colors ${isCreating
+                        className={`px-4 py-2 text-sm font-medium rounded text-white transition-colors ${
+                            isCreating
                                 ? "bg-red-600 hover:bg-red-700"
                                 : "bg-emerald-600 hover:bg-emerald-700"
-                            }`}                    >
+                        }`}
+                    >
                         {isCreating ? "Cancel" : "Create Transaction"}
                     </button>
                     <button
@@ -213,6 +240,7 @@ export default function TransactionList() {
                                 <>
                                     <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
                                     <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
+                                    <option value={TransactionType.BUDGET_TRANSFER}>BUDGET_TRANSFER</option>
                                 </>
                             ) : (
                                 <>
@@ -243,21 +271,23 @@ export default function TransactionList() {
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium">Budget</label>
-                        <select
-                            value={budgetId}
-                            onChange={(e) => setBudgetId(Number(e.target.value))}
-                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
-                        >
-                            <option value={0} disabled>Select budget</option>
-                            {budgets.map(b => (
-                                <option key={b.id} value={b.id}>
-                                    {b.description || `Budget #${b.id}`} {b.enabled === false ? "(Disabled)" : ""}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    {requiresBudget && (
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium">Associated Budget</label>
+                            <select
+                                value={budgetId}
+                                onChange={(e) => setBudgetId(Number(e.target.value))}
+                                className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                            >
+                                <option value={0} disabled>Select Associated Budget</option>
+                                {budgets.map(b => (
+                                    <option key={b.id} value={b.id}>
+                                        {b.description || `Budget #${b.id}`} {b.enabled === false ? "(Disabled)" : ""}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium">Date & Time</label>
@@ -300,22 +330,23 @@ export default function TransactionList() {
                         />
                     </div>
 
-                    <div className="flex items-center gap-2 my-1">
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Recurrence Period (Days)</label>
                         <input
-                            type="checkbox"
-                            id="create-recurrence"
-                            checked={recurrence}
-                            onChange={(e) => setRecurrence(e.target.checked)}
-                            className="w-4 h-4"
+                            type="number"
+                            min="0"
+                            value={recurrencePeriod}
+                            onChange={(e) => setRecurrencePeriod(Number(e.target.value))}
+                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                            placeholder="0 for non-recurring"
                         />
-                        <label htmlFor="create-recurrence" className="text-xs select-none">Recurring</label>
                     </div>
 
                     <button
                         type="submit"
                         className="mt-2 py-2 bg-emerald-600 hover:bg-emerald-700 font-medium rounded text-white transition-colors"
                     >
-                        Save Transaction
+                        Create
                     </button>
                 </form>
             )}
