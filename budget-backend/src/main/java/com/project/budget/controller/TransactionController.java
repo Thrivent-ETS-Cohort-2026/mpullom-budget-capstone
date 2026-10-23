@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.budget.dto.AccountTransferRequest;
+import com.project.budget.dto.BudgetTransferRequest;
 import com.project.budget.dto.TransactionRequest;
 import com.project.budget.model.Transaction;
 import com.project.budget.model.TransactionType;
@@ -51,19 +53,23 @@ public class TransactionController {
         return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
     }
 
-    @GetMapping
+@GetMapping
     public ResponseEntity<List<Transaction>> getTransactions(
             @RequestParam(required = false) TransactionType type,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String token = authHeader.substring(7);
+        
+        LocalDateTime parsedFrom = fromDate != null ? LocalDateTime.parse(fromDate) : null;
+        LocalDateTime parsedTo = toDate != null ? LocalDateTime.parse(toDate) : null;
+
         List<Transaction> transactions = transactionService.filterTransactions(
-                token, type, fromDate, toDate);
+                token, type, parsedFrom, parsedTo);
         return ResponseEntity.ok(transactions);
     }
 
@@ -92,5 +98,21 @@ public class TransactionController {
         String token = authHeader.substring(7);
         transactionService.deleteTransaction(token, id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/transfer/account")
+    public ResponseEntity<Void> accountTransfer(
+            @RequestHeader("Authorization") String token,
+            @RequestBody AccountTransferRequest request) {
+        transactionService.accountTransfer(token, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/transfer/budget")
+    public ResponseEntity<Void> budgetTransfer(
+            @RequestHeader("Authorization") String token,
+            @RequestBody BudgetTransferRequest request) {
+        transactionService.budgetTransfer(token, request);
+        return ResponseEntity.ok().build();
     }
 }

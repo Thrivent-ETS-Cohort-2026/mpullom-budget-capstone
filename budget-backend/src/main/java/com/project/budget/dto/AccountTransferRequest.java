@@ -2,21 +2,19 @@ package com.project.budget.dto;
 
 import java.time.LocalDateTime;
 
+import com.project.budget.model.Account;
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record AccountTransferRequest(
-    @NotNull(message = "Source account number cannot be null.")
-    Long sourceAccountNumber,
+        @NotNull(message = "Source account cannot be null.") Account sourceAccount,
 
-    @NotNull(message = "Target account number cannot be null.")
-    Long targetAccountNumber,
+        @NotNull(message = "Target account cannot be null.") Account targetAccount,
 
-    @NotNull(message = "Amount cannot be null.")
-    @Positive(message = "Amount must be greater than zero.")
-    Double amount,
+        @NotNull(message = "Amount cannot be null.") @Positive(message = "Amount must be greater than zero.") Double amount,
 
-    String description,
-    
-    LocalDateTime timestamp
-) {}
+        String description,
+
+        LocalDateTime timestamp) {
+}

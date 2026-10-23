@@ -7,9 +7,14 @@ import { updateAccountBalance, fetchAccounts } from "@/lib/accountApi";
 import { fetchBudgets } from "@/lib/budgetApi";
 import { createTransaction } from "@/lib/transactionApi";
 import Notification from "@/components/Notification";
-import { createAccountTransfer } from "@/lib/accountTransferApi";
+import { createAccountTransfer, createBudgetTransfer } from "@/lib/transferApi";
 
-export default function AccountCard({ account }: { account: Account }) {
+interface AccountCardProps {
+    account: Account;
+    onAccountUpdated?: () => void;
+}
+
+export default function AccountCard({ account, onAccountUpdated }: AccountCardProps) {
     if (!account) return null;
 
     const [currentBalance, setCurrentBalance] = useState(account.balance ?? 0);
@@ -28,9 +33,14 @@ export default function AccountCard({ account }: { account: Account }) {
 
     const { currentUser } = useContext(AuthContext);
 
+    // Sync local balance whenever parent AccountList passes updated account props
+    useEffect(() => {
+        setCurrentBalance(account.balance ?? 0);
+    }, [account.balance]);
+
     useEffect(() => {
         async function loadTransferTargets() {
-            if (currentUser != null) {
+            if (currentUser?.token != null) {
                 try {
                     const [accountsData, budgetsData] = await Promise.all([
                         fetchAccounts(currentUser.token),
@@ -45,7 +55,7 @@ export default function AccountCard({ account }: { account: Account }) {
             }
         }
         loadTransferTargets();
-    }, [currentUser, account.accountNumber]);
+    }, [currentUser?.token, account.accountNumber]);
 
     async function handleBalanceChange(isDeposit: boolean) {
         if (currentUser != null && account != null) {
@@ -65,7 +75,7 @@ export default function AccountCard({ account }: { account: Account }) {
             try {
                 const transactionType = isDeposit ? TransactionType.ACCOUNT_DEPOSIT : TransactionType.ACCOUNT_WITHDRAWL;
                 const transactionData: any = {
-                    account: { accountNumber: account.accountNumber },
+                    account: account,
                     transactionType: transactionType,
                     amount: amount,
                     description: `${isDeposit ? "Deposit to" : "Withdrawal from"} Account #${account.accountNumber}`,
@@ -92,6 +102,8 @@ export default function AccountCard({ account }: { account: Account }) {
                 } else {
                     setWithdrawAmount("");
                 }
+
+                onAccountUpdated?.();
             } catch (err) {
                 console.error(`Failed to process ${isDeposit ? "deposit" : "withdrawal"} transaction:`, err);
                 setNotificationMessage(`Failed to process ${isDeposit ? "deposit" : "withdrawal"}. Check balance and account status.`);
@@ -114,17 +126,19 @@ export default function AccountCard({ account }: { account: Account }) {
                 return;
             }
 
-            try {
-                const transactionData = {
-                    account: { accountNumber: account.accountNumber },
-                    budget: { id: Number(selectedAccountBudget) },
-                    transactionType: TransactionType.BUDGET_TRANSFER,
-                    amount: amount,
-                    description: `Transfer from Account #${account.accountNumber} using Budget #${selectedAccountBudget}`,
-                    recurrencePeriod: 0
-                };
+            const targetBudgetObj = allBudgets.find(b => b.id === Number(selectedAccountBudget));
+            if (!targetBudgetObj) {
+                setNotificationMessage("Selected budget not found.");
+                return;
+            }
 
-                await createTransaction(currentUser.token, transactionData);
+            try {
+                await createBudgetTransfer(currentUser.token, {
+                    sourceAccount: account,
+                    targetBudget: targetBudgetObj,
+                    amount: amount,
+                    description: `Transfer from Account #${account.accountNumber} using Budget #${selectedAccountBudget}`
+                });
 
                 const newBalance = currentBalance - amount;
 
@@ -133,6 +147,7 @@ export default function AccountCard({ account }: { account: Account }) {
                 setCurrentBalance(newBalance);
                 setTransferAmount("");
                 setNotificationMessage("Successfully processed budget transfer!");
+                onAccountUpdated?.();
             } catch (err) {
                 console.error("Failed to process transfer:", err);
                 setNotificationMessage("Failed to process budget transfer transaction.");
@@ -143,7 +158,6 @@ export default function AccountCard({ account }: { account: Account }) {
     }
 
     async function handleAccountTransfer() {
-        console.log("Clicked transfer");
         if (currentUser != null && account != null) {
             if (!selectedTargetAccount) {
                 setNotificationMessage("Please select a target account for the transfer.");
@@ -161,10 +175,16 @@ export default function AccountCard({ account }: { account: Account }) {
                 return;
             }
 
+            const targetAccObj = allAccounts.find(acc => acc.accountNumber === Number(selectedTargetAccount));
+            if (!targetAccObj) {
+                setNotificationMessage("Target account not found.");
+                return;
+            }
+
             try {
                 await createAccountTransfer(currentUser.token, {
-                    sourceAccountNumber: account.accountNumber,
-                    targetAccountNumber: Number(selectedTargetAccount),
+                    sourceAccount: account,
+                    targetAccount: targetAccObj,
                     amount: amount,
                     description: `Transfer from Account #${account.accountNumber} to Account #${selectedTargetAccount}`
                 });
@@ -175,6 +195,7 @@ export default function AccountCard({ account }: { account: Account }) {
                 setAccountTransferAmount("");
                 setSelectedTargetAccount("");
                 setNotificationMessage("Successfully transferred funds to account!");
+                onAccountUpdated?.();
             } catch (err) {
                 console.error("Failed to process account-to-account transfer:", err);
                 setNotificationMessage("Failed to process account-to-account transfer.");

@@ -1,9 +1,9 @@
 import { Transaction } from "@/types/DataTypes";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/transactions';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 export async function getTransactions(token: string, fromDate?: string, toDate?: string) {
-    let url = `${BASE_URL}`;
+    let url = `${API_BASE_URL}/transactions`;
     const params = new URLSearchParams();
 
     if (fromDate) {
@@ -21,18 +21,21 @@ export async function getTransactions(token: string, fromDate?: string, toDate?:
     }
 
     const response = await fetch(url, {
+        method: "GET",
         headers: {
+            "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         }
     });
 
     if (!response.ok) {
-        throw new Error("Failed to fetch transactions");
+        const errorText = await response.text();
+        console.error("Backend Error Details:", errorText);
+        throw new Error(`Failed to fetch transactions: ${errorText}`);
     }
 
     return response.json();
 }
-
 
 export async function createTransaction(token: string, transactionData: {
     account?: { accountNumber: number };
@@ -43,7 +46,7 @@ export async function createTransaction(token: string, transactionData: {
     description: string;
     timestamp?: string;
 }): Promise<Transaction> {
-    const response = await fetch(BASE_URL, {
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -61,7 +64,7 @@ export async function createTransaction(token: string, transactionData: {
 }
 
 export async function deleteTransaction(token: string, transactionId: number): Promise<void> {
-    const response = await fetch(`${BASE_URL}/${transactionId}`, {
+    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
         method: "DELETE",
         headers: {
             "Authorization": `Bearer ${token}`
@@ -75,7 +78,7 @@ export async function deleteTransaction(token: string, transactionId: number): P
 }
 
 export async function updateTransaction(token: string, transactionId: number, updatedTransaction: any) {
-    const response = await fetch(`${BASE_URL}/${transactionId}`, {
+    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",

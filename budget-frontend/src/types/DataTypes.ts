@@ -24,32 +24,49 @@ export interface Account {
   accountType: AccountType;
   user: User;
   balance: number;
-  accountStatus : AccountStatus;
+  accountStatus: AccountStatus;
 }
 
 export interface Transfer {
-  id: number;
+  transferId: number;
+  account: Account;
+  budget: BudgetType;
   amount: number;
-  sender_account_id: number;
   receiver_account_id: number;
+  description: string;
+  timestamp?: string
+}
+
+export interface Transaction {
+  transactionId?: number;
+  account?: Account;
+  transactionType: TransactionType;
+  amount: number;
+  timestamp?: string
+  recurrencePeriod: number;
+  description: string;
+}
+
+export enum TransferType {
+  ACCOUNT_TRANSFER = "ACCOUNT_TRANSFER",
+  BUDGET_TRANSFER = "BUDGET_TRANSFER",
 }
 
 export enum TransactionType {
-    ACCOUNT_WITHDRAWL = "ACCOUNT_WITHDRAWL",
-    ACCOUNT_DEPOSIT = "ACCOUNT_DEPOSIT",
-    ACCOUNT_TRANSFER = "ACCOUNT_TRANSFER",
-    BUDGET_TRANSFER = "BUDGET_TRANSFER",
-    BUDGET_WITHDRAWL = "BUDGET_WITHDRAWL"
-  }
+  ACCOUNT_WITHDRAWL = "ACCOUNT_WITHDRAWL",
+  ACCOUNT_DEPOSIT = "ACCOUNT_DEPOSIT",
+  BUDGET_WITHDRAWL = "BUDGET_WITHDRAWL",
+  BUDGET_DEPOSIT = "BUDGET_DEPOSIT"
+}
 
 export interface Transaction {
-    transactionId?: number;
-    account?: Account;
-    transactionType: TransactionType;
-    amount: number;
-    timestamp?: string
-    recurrencePeriod: number;
-    description: string;
+  transactionId?: number;
+  account?: Account;
+  transactionType: TransactionType;
+  amount: number;
+  timestamp?: string
+  recurrencePeriod: number;
+  description: string;
 }
 
 export type TargetPeriod = "MONTHLY" | "WEEKLY" | "YEARLY";

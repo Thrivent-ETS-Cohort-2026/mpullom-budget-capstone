@@ -43,7 +43,7 @@ export default function TransactionList() {
     const isBankingRoute = pathname === '/banking/transactions';
     const isBudgetingRoute = pathname === '/budgeting/transactions';
 
-    const requiresBudget = transactionType === TransactionType.ACCOUNT_WITHDRAWL || transactionType === TransactionType.BUDGET_TRANSFER;
+    const requiresBudget = transactionType === TransactionType.ACCOUNT_WITHDRAWL || transactionType === TransactionType.BUDGET_DEPOSIT;
 
     async function fetchTransactionsList() {
         if (!currentUser) return;
@@ -132,16 +132,16 @@ export default function TransactionList() {
             let finalDescription = description ? description.trim() : "";
             if (requiresBudget && selectedBudget) {
                 const budgetIdentifier = selectedBudget.description || `Budget #${selectedBudget.id}`;
-                const defaultPrefix = transactionType === TransactionType.BUDGET_TRANSFER 
-                    ? `Transfer from Account #${accountNumber} using ${budgetIdentifier}`
-                    : `Withdrawal from Account #${accountNumber} - [${budgetIdentifier}]`;
+                const defaultPrefix = transactionType === TransactionType.BUDGET_DEPOSIT 
+                    ? `Deposit to Budget #${selectedBudget.id}` 
+                    : `Withdrawal from Account #${accountNumber}[${budgetIdentifier}]`;
 
-                finalDescription = finalDescription ? `${finalDescription} - [${budgetIdentifier}]` : defaultPrefix;
+                finalDescription = finalDescription ? finalDescription : defaultPrefix;
             } else if (!requiresBudget && accountNumber > 0) {
                 const defaultPrefix = transactionType === TransactionType.ACCOUNT_DEPOSIT 
                     ? `Deposit to Account #${accountNumber}` 
                     : `Withdrawal from Account #${accountNumber}`;
-                finalDescription = finalDescription ? `${finalDescription}` : defaultPrefix;
+                finalDescription = finalDescription ? finalDescription : defaultPrefix;
             }
 
             const transactionData: any = {
@@ -233,20 +233,20 @@ export default function TransactionList() {
                         >
                             {isBudgetingRoute ? (
                                 <>
-                                    <option value="BUDGET_DEPOSIT">BUDGET_DEPOSIT</option>
+                                    <option value={TransactionType.BUDGET_DEPOSIT}>BUDGET_DEPOSIT</option>
                                     <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
                                 </>
                             ) : isBankingRoute ? (
                                 <>
                                     <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
                                     <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
-                                    <option value={TransactionType.BUDGET_TRANSFER}>BUDGET_TRANSFER</option>
+                                    <option value={TransactionType.BUDGET_DEPOSIT}>BUDGET_DEPOSIT</option>
                                 </>
                             ) : (
                                 <>
                                     <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
                                     <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
-                                    <option value={TransactionType.BUDGET_TRANSFER}>BUDGET_TRANSFER</option>
+                                    <option value={TransactionType.BUDGET_DEPOSIT}>BUDGET_DEPOSIT</option>
                                     <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
                                 </>
                             )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Account } from "@/types/DataTypes";
 import { fetchAccounts } from "@/lib/accountApi";
@@ -13,25 +13,29 @@ export default function AccountList() {
     const [loading, setLoading] = useState<boolean>(true);
     const { currentUser } = useContext(AuthContext);
 
-    useEffect(() => {
-        async function loadAccounts() {
-            if (currentUser != null) {
-                try {
-                    const data = await fetchAccounts(currentUser?.token);
-                    setAccounts(data);
-                } catch (err) {
-                    console.error("Failed to fetch accounts:", err);
-                } finally {
+    const loadAccounts = useCallback(async (isInitialLoad = false) => {
+        if (currentUser?.token != null) {
+            try {
+                const data = await fetchAccounts(currentUser.token);
+                setAccounts(data);
+            } catch (err) {
+                console.error("Failed to fetch accounts:", err);
+            } finally {
+                if (isInitialLoad) {
                     setLoading(false);
                 }
-            } else {
-                console.log("Token was null");
+            }
+        } else {
+            console.log("Token was null");
+            if (isInitialLoad) {
                 setLoading(false);
             }
         }
+    }, [currentUser?.token]);
 
-        loadAccounts();
-    }, [currentUser]);
+    useEffect(() => {
+        loadAccounts(true);
+    }, [loadAccounts]);
 
     function handleSummary() {
         console.log("Viewing transactions summary");
@@ -64,6 +68,7 @@ export default function AccountList() {
                         <AccountCard
                             key={account.accountNumber}
                             account={account}
+                            onAccountUpdated={() => loadAccounts(false)}
                         />
                     ))
                 )}

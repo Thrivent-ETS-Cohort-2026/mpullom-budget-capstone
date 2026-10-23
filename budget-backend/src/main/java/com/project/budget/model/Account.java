@@ -28,7 +28,7 @@ public class Account {
     private AccountType accountType;
 
     @Column(name = "balance", nullable = false)
-    private double balance;
+    private Double balance;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status", nullable = false)
@@ -37,7 +37,7 @@ public class Account {
     public Account() {
     }
 
-    public Account(AccountType accountType, User user, double initialBalance, AccountStatus accountStatus) {
+    public Account(AccountType accountType, User user, Double initialBalance, AccountStatus accountStatus) {
         this.accountType = accountType;
         this.user = user;
         this.balance = initialBalance;
@@ -56,11 +56,11 @@ public class Account {
         return this.accountType;
     }
 
-    public double getBalance() {
+    public Double getBalance() {
         return this.balance;
     }
 
-    public void setBalance(double newBalance) {
+    public void setBalance(Double newBalance) {
         this.balance = newBalance;
     }
 

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.project.budget.dto.AccountTransferRequest;
+import com.project.budget.dto.BudgetTransferRequest;
 import com.project.budget.dto.TransactionRequest;
 import com.project.budget.model.Account;
 import com.project.budget.model.Transaction;
@@ -25,115 +27,21 @@ public class TransactionService {
 
     private final TransactionRepository transactions;
     private final AccountRepository accounts;
+    private final BudgetService budgetService;
     private final UserService userService;
     private final AccountService accountService;
 
     public TransactionService(
             TransactionRepository transactions,
             AccountRepository accounts,
+            BudgetService budgetService,
             UserService userService,
             AccountService accountService) {
         this.transactions = transactions;
         this.accounts = accounts;
+        this.budgetService = budgetService;
         this.userService = userService;
         this.accountService = accountService;
-    }
-
-    @Transactional
-    public Transaction createTransaction(String token, TransactionRequest request) {
-        User authenticatedUser = userService.getUserByToken(token);
-        if (authenticatedUser == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token.");
-        }
-
-        if (request == null) {
-            throw new IllegalArgumentException("Transaction request body cannot be null.");
-        }
-
-        if (request.amount() == null || request.amount() <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero.");
-        }
-
-        Account targetAccount = null;
-        TransactionType type = request.transactionType();
-
-        switch (type) {
-            case ACCOUNT_WITHDRAWL:
-                if (request.account() == null || request.account().getAccountNumber() == null) {
-                    throw new IllegalArgumentException("Account must be provided for account withdrawals.");
-                }
-                targetAccount = accounts.findById(request.account().getAccountNumber())
-                        .orElseThrow(() -> new IllegalArgumentException("Account not found."));
-
-                validateOwnership(targetAccount, authenticatedUser);
-
-                if (targetAccount.getBalance() < request.amount()) {
-                    throw new IllegalStateException("Insufficient funds for withdrawal.");
-                }
-
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
-                        targetAccount.getBalance() - request.amount());
-
-                break;
-
-            case ACCOUNT_DEPOSIT:
-                if (request.account() == null || request.account().getAccountNumber() == null) {
-                    throw new IllegalArgumentException("Account must be provided for deposits.");
-                }
-                targetAccount = accounts.findById(request.account().getAccountNumber())
-                        .orElseThrow(() -> new IllegalArgumentException("Account not found."));
-
-                validateOwnership(targetAccount, authenticatedUser);
-
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
-                        targetAccount.getBalance() + request.amount());
-                break;
-
-            case BUDGET_TRANSFER:
-                if (request.account() == null || request.account().getAccountNumber() == null) {
-                    throw new IllegalArgumentException("Account must be provided for budget transfers.");
-                }
-                targetAccount = accounts.findById(request.account().getAccountNumber())
-                        .orElseThrow(() -> new IllegalArgumentException("Account not found."));
-
-                validateOwnership(targetAccount, authenticatedUser);
-
-                if (targetAccount.getBalance() < request.amount()) {
-                    throw new IllegalStateException("Insufficient funds in account for budget transfer.");
-                }
-
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
-                        targetAccount.getBalance() - request.amount());
-
-                break;
-
-            case BUDGET_WITHDRAWL:
-                List<Account> userAccounts = accountService.getAccountsByToken(token);
-                targetAccount = userAccounts.stream()
-                        .filter(acc -> "CHECKING".equalsIgnoreCase(acc.getAccountType().toString())
-                                && acc.getBalance() >= request.amount())
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException(
-                                "No checking account with sufficient funds found for budget withdrawal."));
-
-                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
-                        targetAccount.getBalance() - request.amount());
-
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unsupported transaction type: " + type);
-        }
-
-        Transaction transaction = new Transaction(
-                targetAccount,
-                request.transactionType(),
-                request.amount(),
-                request.recurrencePeriod(),
-                request.description(),
-                (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now());
-
-        return transactions.save(transaction);
     }
 
     @Transactional(readOnly = true)
@@ -151,7 +59,7 @@ public class TransactionService {
         return transactions.findByAccount_AccountNumber(accountNumber);
     }
 
-    @Transactional(readOnly = true)
+@Transactional(readOnly = true)
     public List<Transaction> filterTransactions(
             String token,
             TransactionType type,
@@ -248,20 +156,19 @@ public class TransactionService {
         Transaction transaction = transactions.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction " + id + " not found"));
 
-        double amount = transaction.getAmount();
+        Double amount = transaction.getAmount();
 
         if (transaction.getAccount() != null && transaction.getTransactionType() != null) {
             Account account = transaction.getAccount();
             Long accountNumber = account.getAccountNumber(); 
-            double currentBalance = account.getBalance();
-            double updatedBalance = currentBalance;
+            Double currentBalance = account.getBalance();
+            Double updatedBalance = currentBalance;
 
             switch (transaction.getTransactionType()) {
                 case ACCOUNT_DEPOSIT:
                     updatedBalance -= amount;
                     break;
                 case ACCOUNT_WITHDRAWL:
-                    updatedBalance += amount;
                     break;
                 default:
                     break;
@@ -271,5 +178,181 @@ public class TransactionService {
         }
 
         transactions.delete(transaction);
+    }
+
+    @Transactional
+    public Transaction createTransaction(String token, TransactionRequest request) {
+        User authenticatedUser = userService.getUserByToken(token);
+        if (authenticatedUser == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token.");
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException("Transaction request body cannot be null.");
+        }
+
+        if (request.amount() == null || request.amount() <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero.");
+        }
+
+        Account targetAccount = null;
+        TransactionType type = request.transactionType();
+
+        switch (type) {
+            case ACCOUNT_WITHDRAWL:
+                if (request.account() == null || request.account().getAccountNumber() == null) {
+                    throw new IllegalArgumentException("Account must be provided for withdrawals.");
+                }
+                targetAccount = accounts.findById(request.account().getAccountNumber())
+                        .orElseThrow(() -> new IllegalArgumentException("Account not found."));
+
+                validateOwnership(targetAccount, authenticatedUser);
+
+                if (targetAccount.getBalance() < request.amount()) {
+                    throw new IllegalStateException("Insufficient funds for withdrawal.");
+                }
+
+                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
+                        targetAccount.getBalance() - request.amount());
+                break;
+
+            case ACCOUNT_DEPOSIT:
+                if (request.account() == null || request.account().getAccountNumber() == null) {
+                    throw new IllegalArgumentException("Account must be provided for deposits.");
+                }
+                targetAccount = accounts.findById(request.account().getAccountNumber())
+                        .orElseThrow(() -> new IllegalArgumentException("Account not found."));
+
+                validateOwnership(targetAccount, authenticatedUser);
+
+                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
+                        targetAccount.getBalance() + request.amount());
+                break;
+
+            case BUDGET_DEPOSIT:
+                if (request.account() != null && request.account().getAccountNumber() != null) {
+                    targetAccount = accounts.findById(request.account().getAccountNumber())
+                            .orElseThrow(() -> new IllegalArgumentException("Account not found."));
+                    validateOwnership(targetAccount, authenticatedUser);
+                }
+                break;
+
+            case BUDGET_WITHDRAWL:
+                List<Account> userAccounts = accountService.getAccountsByToken(token);
+                targetAccount = userAccounts.stream()
+                        .filter(acc -> "CHECKING".equalsIgnoreCase(acc.getAccountType().toString())
+                                && acc.getBalance() >= request.amount())
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException(
+                                "No checking account with sufficient funds found for budget withdrawal."));
+
+                accountService.updateAccountBalance(token, targetAccount.getAccountNumber(),
+                        targetAccount.getBalance() - request.amount());
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unsupported transaction type: " + type);
+        }
+
+        Transaction transaction = new Transaction(
+                targetAccount,
+                request.transactionType(),
+                request.amount(),
+                request.recurrencePeriod(),
+                request.description(),
+                (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now());
+
+        return transactions.save(transaction);
+    }
+
+    @Transactional
+    public List<Transaction> accountTransfer(String token, AccountTransferRequest request) {
+        User authenticatedUser = userService.getUserByToken(token);
+        if (authenticatedUser == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token.");
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException("Account transfer request cannot be null.");
+        }
+
+        if (request.amount() == null || request.amount() <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero.");
+        }
+
+        if (request.sourceAccount() == null || request.targetAccount() == null) {
+            throw new IllegalArgumentException("Source and target accounts must be provided.");
+        }
+
+        LocalDateTime timestamp = (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now();
+        String baseDesc = (request.description() != null && !request.description().isBlank())
+                ? request.description()
+                : "Transfer from Account #" + request.sourceAccount().getAccountNumber() + " to Account #" + request.targetAccount().getAccountNumber();
+
+        TransactionRequest withdrawRequest = new TransactionRequest(
+                request.sourceAccount(),
+                TransactionType.ACCOUNT_WITHDRAWL,
+                request.amount(),
+                0L,
+                baseDesc + " (Withdrawal)",
+                timestamp
+        );
+        Transaction sourceTx = createTransaction(token, withdrawRequest);
+
+        TransactionRequest depositRequest = new TransactionRequest(
+                request.targetAccount(),
+                TransactionType.ACCOUNT_DEPOSIT,
+                request.amount(),
+                0L,
+                baseDesc + " (Deposit)",
+                timestamp
+        );
+        Transaction targetTx = createTransaction(token, depositRequest);
+
+        List<Transaction> savedTransactions = new ArrayList<>();
+        savedTransactions.add(sourceTx);
+        savedTransactions.add(targetTx);
+
+        return savedTransactions;
+    }
+
+    @Transactional
+    public void budgetTransfer(String token, BudgetTransferRequest request) {
+        User authenticatedUser = userService.getUserByToken(token);
+        if (authenticatedUser == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token.");
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException("Budget transfer request cannot be null.");
+        }
+
+        if (request.amount() == null || request.amount() <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero.");
+        }
+
+        if (request.sourceAccount() == null || request.sourceAccount().getAccountNumber() == null ||
+                request.targetBudget() == null || request.targetBudget().getId() == null) {
+            throw new IllegalArgumentException("Source account and target budget must be provided.");
+        }
+
+        LocalDateTime timestamp = (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now();
+        String description = (request.description() != null && !request.description().isBlank())
+                ? request.description()
+                : "Transfer from Account #" + request.sourceAccount().getAccountNumber() + " to Budget #" + request.targetBudget().getId();
+
+        TransactionRequest withdrawRequest = new TransactionRequest(
+                request.sourceAccount(),
+                TransactionType.ACCOUNT_WITHDRAWL,
+                request.amount(),
+                0L,
+                description + " (Withdrawal)",
+                timestamp
+        );
+        
+        createTransaction(token, withdrawRequest);
+
+        Double currentMax = request.targetBudget().getMaxAmount() != null ? request.targetBudget().getMaxAmount() : 0.0;
+        budgetService.updateBudgetAmount(token, request.targetBudget().getId(), currentMax + request.amount());
     }
 }

@@ -12,7 +12,7 @@ public record AccountRequest(
 
         @NotNull(message = "User ID is required") User user,
 
-        @Min(value = 0, message = "Initial balance cannot be negative") double initialBalance,
+        @Min(value = 0, message = "Initial balance cannot be negative") Double initialBalance,
 
         AccountStatus accountStatus) {
 
