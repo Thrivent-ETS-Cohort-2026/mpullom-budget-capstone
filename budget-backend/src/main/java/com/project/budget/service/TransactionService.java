@@ -1,11 +1,13 @@
 package com.project.budget.service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -59,7 +61,7 @@ public class TransactionService {
         return transactions.findByAccount_AccountNumber(accountNumber);
     }
 
-@Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<Transaction> filterTransactions(
             String token,
             TransactionType type,
@@ -73,13 +75,10 @@ public class TransactionService {
 
         LocalDateTime start = (fromDate != null) ? fromDate : LocalDateTime.now().minusYears(100);
         LocalDateTime end = (toDate != null) ? toDate : LocalDateTime.now();
-        LocalDateTime now = LocalDateTime.now();
 
         Specification<Transaction> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.equal(root.get("account").get("user").get("id"), authenticatedUser.getId()));
-            predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("timestamp"), start));
-            predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("timestamp"), end));
 
             if (type != null) {
                 predicates.add(criteriaBuilder.equal(root.get("transactionType"), type));
@@ -88,32 +87,29 @@ public class TransactionService {
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
-        List<Transaction> resultList = new ArrayList<>(transactions.findAll(spec));
+        List<Transaction> baseTransactions = transactions.findAll(spec);
 
-        if (end.isAfter(now)) {
-            Specification<Transaction> recurringSpec = (root, query, criteriaBuilder) -> {
-                List<Predicate> recurringPredicates = new ArrayList<>();
-                recurringPredicates.add(
-                        criteriaBuilder.equal(root.get("account").get("user").get("id"), authenticatedUser.getId()));
-                recurringPredicates.add(criteriaBuilder.greaterThan(root.get("recurrencePeriod"), 0L));
-                recurringPredicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("timestamp"), now));
+        return expandRecurringTransactions(baseTransactions, start, end);
+    }
 
-                if (type != null) {
-                    recurringPredicates.add(criteriaBuilder.equal(root.get("transactionType"), type));
-                }
+    private List<Transaction> expandRecurringTransactions(
+            List<Transaction> baseTransactions,
+            LocalDateTime start,
+            LocalDateTime end) {
 
-                return criteriaBuilder.and(recurringPredicates.toArray(new Predicate[0]));
-            };
+        List<Transaction> resultList = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
 
-            List<Transaction> baseRecurring = transactions.findAll(recurringSpec);
+        for (Transaction baseTx : baseTransactions) {
+            LocalDateTime txTime = baseTx.getTimestamp();
 
-            for (Transaction baseTx : baseRecurring) {
-                LocalDateTime nextOccurrence = baseTx.getTimestamp();
-                Long periodDays = baseTx.getRecurrencePeriod();
+            if (!txTime.isBefore(start) && !txTime.isAfter(end)) {
+                resultList.add(baseTx);
+            }
 
-                if (periodDays == null || periodDays <= 0) {
-                    continue;
-                }
+            Long periodDays = baseTx.getRecurrencePeriod();
+            if (periodDays != null && periodDays > 0) {
+                LocalDateTime nextOccurrence = txTime;
 
                 while (true) {
                     nextOccurrence = advanceOccurrence(nextOccurrence, periodDays);
@@ -136,7 +132,13 @@ public class TransactionService {
             }
         }
 
-        resultList.sort((t1, t2) -> t1.getTimestamp().compareTo(t2.getTimestamp()));
+        resultList.sort((t1, t2) -> {
+            if (t1.getTimestamp() == null)
+                return 1;
+            if (t2.getTimestamp() == null)
+                return -1;
+            return t1.getTimestamp().compareTo(t2.getTimestamp());
+        });
         return resultList;
     }
 
@@ -154,13 +156,14 @@ public class TransactionService {
     @Transactional
     public void deleteTransaction(String token, Long id) {
         Transaction transaction = transactions.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction " + id + " not found"));
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction " + id + " not found"));
 
         Double amount = transaction.getAmount();
 
         if (transaction.getAccount() != null && transaction.getTransactionType() != null) {
             Account account = transaction.getAccount();
-            Long accountNumber = account.getAccountNumber(); 
+            Long accountNumber = account.getAccountNumber();
             Double currentBalance = account.getBalance();
             Double updatedBalance = currentBalance;
 
@@ -287,7 +290,8 @@ public class TransactionService {
         LocalDateTime timestamp = (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now();
         String baseDesc = (request.description() != null && !request.description().isBlank())
                 ? request.description()
-                : "Transfer from Account #" + request.sourceAccount().getAccountNumber() + " to Account #" + request.targetAccount().getAccountNumber();
+                : "Transfer from Account #" + request.sourceAccount().getAccountNumber() + " to Account #"
+                        + request.targetAccount().getAccountNumber();
 
         TransactionRequest withdrawRequest = new TransactionRequest(
                 request.sourceAccount(),
@@ -295,8 +299,7 @@ public class TransactionService {
                 request.amount(),
                 0L,
                 baseDesc + " (Withdrawal)",
-                timestamp
-        );
+                timestamp);
         Transaction sourceTx = createTransaction(token, withdrawRequest);
 
         TransactionRequest depositRequest = new TransactionRequest(
@@ -305,8 +308,7 @@ public class TransactionService {
                 request.amount(),
                 0L,
                 baseDesc + " (Deposit)",
-                timestamp
-        );
+                timestamp);
         Transaction targetTx = createTransaction(token, depositRequest);
 
         List<Transaction> savedTransactions = new ArrayList<>();
@@ -339,7 +341,8 @@ public class TransactionService {
         LocalDateTime timestamp = (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now();
         String description = (request.description() != null && !request.description().isBlank())
                 ? request.description()
-                : "Transfer from Account #" + request.sourceAccount().getAccountNumber() + " to Budget #" + request.targetBudget().getId();
+                : "Transfer from Account #" + request.sourceAccount().getAccountNumber() + " to Budget #"
+                        + request.targetBudget().getId();
 
         TransactionRequest withdrawRequest = new TransactionRequest(
                 request.sourceAccount(),
@@ -347,12 +350,49 @@ public class TransactionService {
                 request.amount(),
                 0L,
                 description + " (Withdrawal)",
-                timestamp
-        );
-        
+                timestamp);
+
         createTransaction(token, withdrawRequest);
 
         Double currentAmount = request.targetBudget().getCurrentAmount();
-        budgetService.updateCurrentBudgetAmount(token, request.targetBudget().getId(), currentAmount + request.amount());
+        budgetService.updateBudgetCurrentAmount(token, request.targetBudget().getId(),
+                currentAmount + request.amount());
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void processRecurringTransactions() {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Transaction> recurringTransactions = transactions.findByRecurrencePeriodGreaterThan(0L);
+
+        for (Transaction baseTx : recurringTransactions) {
+            LocalDateTime lastOccurrence = baseTx.getTimestamp();
+            Long periodDays = baseTx.getRecurrencePeriod();
+
+            if (periodDays == null || periodDays <= 0 || lastOccurrence == null) {
+                continue;
+            }
+
+            long daysPassed = ChronoUnit.DAYS.between(lastOccurrence, now);
+
+            if (daysPassed >= periodDays) {
+                LocalDateTime newTimestamp = lastOccurrence.plusDays(periodDays);
+
+                TransactionRequest request = new TransactionRequest(
+                        baseTx.getAccount(),
+                        baseTx.getTransactionType(),
+                        baseTx.getAmount(),
+                        baseTx.getRecurrencePeriod(),
+                        baseTx.getDescription(),
+                        newTimestamp);
+
+                String userToken = baseTx.getAccount().getUser().getToken();
+                createTransaction(userToken, request);
+
+                baseTx.setTimestamp(newTimestamp);
+                transactions.save(baseTx);
+            }
+        }
     }
 }

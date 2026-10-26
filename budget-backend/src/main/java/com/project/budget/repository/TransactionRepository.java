@@ -11,4 +11,5 @@ import com.project.budget.model.Transaction;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
     List<Transaction> findByAccount_AccountNumber(Long accountNumber);
+    List<Transaction> findByRecurrencePeriodGreaterThan(Long period);
 }

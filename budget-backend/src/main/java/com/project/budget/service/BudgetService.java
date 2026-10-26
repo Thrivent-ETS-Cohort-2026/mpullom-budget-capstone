@@ -70,7 +70,7 @@ public class BudgetService {
     }
 
     @Transactional
-    public Budget updateCurrentBudgetAmount(String token, Long budgetId, Double newAmount) {
+    public Budget updateBudgetCurrentAmount(String token, Long budgetId, Double newAmount) {
         Budget budget = budgets.findById(budgetId)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget " + budgetId + " not found"));
