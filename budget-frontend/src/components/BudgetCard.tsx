@@ -21,7 +21,7 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
 
     const [withdrawAmount, setWithdrawAmount] = useState<string>("");
 
-    const TARGET_PERIODS = ["WEEKLY", "MONTHLY", "YEARLY"] as const;
+    const TARGET_PERIODS = ["MONTHLY", "QUARTERLY", "YEARLY"] as const;
     const { currentUser } = useContext(AuthContext);
 
     async function handleEnableToggle() {

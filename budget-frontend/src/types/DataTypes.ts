@@ -69,7 +69,7 @@ export interface Transaction {
   description: string;
 }
 
-export type TargetPeriod = "MONTHLY" | "WEEKLY" | "YEARLY";
+export type TargetPeriod = "MONTHLY" | "QUARTERLY" | "YEARLY";
 
 export interface BudgetType {
   id: number;
