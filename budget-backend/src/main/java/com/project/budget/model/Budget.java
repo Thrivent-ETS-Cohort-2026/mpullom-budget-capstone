@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "budget_data")
@@ -39,10 +40,13 @@ public class Budget {
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;
 
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
+
     public Budget() {
     }
 
-    public Budget(User user, String description, TargetPeriod targetPeriod, Double currentAmount, Double maxAmount, Boolean enabled) {
+    public Budget(User user, String description, TargetPeriod targetPeriod, Double currentAmount, Double maxAmount, Boolean enabled, LocalDateTime startDate) {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null.");
         }
@@ -59,6 +63,7 @@ public class Budget {
         this.currentAmount = currentAmount;
         this.maxAmount = maxAmount;
         this.enabled = enabled;
+        this.startDate = (startDate != null) ? startDate : LocalDateTime.now();
     }
 
     public Long getId() {
@@ -115,5 +120,13 @@ public class Budget {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public LocalDateTime getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDateTime startDate) {
+        this.startDate = startDate;
     }
 }

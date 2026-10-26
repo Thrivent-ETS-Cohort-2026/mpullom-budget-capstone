@@ -89,3 +89,8 @@ export interface BudgetRequest {
   maxAmount: number;
   enabled: boolean;
 }
+
+export interface BudgetTallyResponse {
+  currentAmountTally: number;
+  maxAmountTally: number;
+}

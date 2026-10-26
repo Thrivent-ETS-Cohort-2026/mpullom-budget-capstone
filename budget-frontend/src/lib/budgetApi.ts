@@ -1,4 +1,4 @@
-import { BudgetRequest, BudgetType, User } from "@/types/DataTypes";
+import { BudgetRequest, BudgetTallyResponse, BudgetType, User } from "@/types/DataTypes";
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/budgets`;
 
 export async function fetchBudgets(token: string): Promise<BudgetType[]> {
@@ -81,4 +81,36 @@ export async function deleteBudget(token: string, budgetId: number): Promise<voi
         console.error("Network or execution error during deleteBudget:", error);
         throw error;
     }
+}
+
+export async function tallyBudgetAmounts(token: string, startDate: string, endDate: string): Promise<BudgetTallyResponse> {
+    const response = await fetch(`/api/budgets/tally?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch budget tally amounts.');
+    }
+
+    return response.json();
+}
+
+export async function refreshBudget(token: string, budgetId: number): Promise<BudgetType> {
+    const response = await fetch(`/api/budgets/${budgetId}/refresh`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to refresh budget with ID ${budgetId}.`);
+    }
+
+    return response.json();
 }

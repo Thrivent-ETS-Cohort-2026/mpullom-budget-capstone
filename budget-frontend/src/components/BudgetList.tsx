@@ -6,6 +6,7 @@ import { BudgetType } from "@/types/DataTypes";
 import BudgetCard from "./BudgetCard";
 import { createBudget, fetchBudgets } from "@/lib/budgetApi";
 import { AuthContext } from "@/context/AuthContext";
+import BudgetAnalytics from "./BudetAnalytics";
 
 export default function BudgetList() {
     const router = useRouter();
@@ -56,6 +57,7 @@ export default function BudgetList() {
 
     return (
         <main className="p-4 w-full">
+            <BudgetAnalytics/>
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Budgeting</h1>
                 <div className="flex items-center gap-2">
