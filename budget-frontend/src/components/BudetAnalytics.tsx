@@ -1,6 +1,6 @@
 'use client'
 
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { tallyBudgetAmounts } from "@/lib/budgetApi"; 
 import { AuthContext } from "@/context/AuthContext";
 import { BudgetTallyResponse } from "@/types/DataTypes";
@@ -12,9 +12,19 @@ export default function BudgetAnalytics() {
     const [error, setError] = useState<string | null>(null);
     const { currentUser } = useContext(AuthContext);
 
+    const getFormattedDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const today = new Date();
+    const defaultFrom = getFormattedDate(new Date(today.getFullYear(), today.getMonth(), 1));
+    const defaultTo = getFormattedDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
+
     async function handleSearch(fromDate: string, toDate: string) {
         if (!currentUser) {
-            setError("User is not authenticated.");
             return;
         }
 
@@ -44,6 +54,12 @@ export default function BudgetAnalytics() {
             setLoading(false);
         }
     }
+
+    useEffect(() => {
+        if (currentUser?.token) {
+            handleSearch(defaultFrom, defaultTo);
+        }
+    }, [currentUser]);
 
     const currentTally = tallyData?.currentAmountTally ?? 0;
     const maxTally = tallyData?.maxAmountTally ?? 1;
