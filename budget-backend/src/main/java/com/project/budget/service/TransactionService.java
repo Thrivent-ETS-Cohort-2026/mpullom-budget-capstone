@@ -352,7 +352,7 @@ public class TransactionService {
         
         createTransaction(token, withdrawRequest);
 
-        Double currentMax = request.targetBudget().getMaxAmount() != null ? request.targetBudget().getMaxAmount() : 0.0;
-        budgetService.updateBudgetAmount(token, request.targetBudget().getId(), currentMax + request.amount());
+        Double currentAmount = request.targetBudget().getCurrentAmount();
+        budgetService.updateCurrentBudgetAmount(token, request.targetBudget().getId(), currentAmount + request.amount());
     }
 }

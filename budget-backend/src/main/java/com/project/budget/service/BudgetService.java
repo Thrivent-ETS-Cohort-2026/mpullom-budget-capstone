@@ -51,7 +51,7 @@ public class BudgetService {
     }
 
     @Transactional
-    public Budget updateBudgetAmount(String token, Long budgetId, Double newAmount) {
+    public Budget updateMaxBudgetAmount(String token, Long budgetId, Double newAmount) {
         Budget budget = budgets.findById(budgetId)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget " + budgetId + " not found"));
@@ -64,6 +64,25 @@ public class BudgetService {
 
         if (newAmount != null) {
             budget.setMaxAmount(newAmount);
+        }
+
+        return budgets.save(budget);
+    }
+
+    @Transactional
+    public Budget updateCurrentBudgetAmount(String token, Long budgetId, Double newAmount) {
+        Budget budget = budgets.findById(budgetId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget " + budgetId + " not found"));
+
+        if (budget.getUser().getToken() == null || !budget.getUser().getToken().equals(token)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Current user is not authorized to make this call");
+        }
+
+        if (newAmount != null) {
+            budget.setCurrentAmount(newAmount);
         }
 
         return budgets.save(budget);
