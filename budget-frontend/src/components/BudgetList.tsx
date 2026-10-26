@@ -57,19 +57,19 @@ export default function BudgetList() {
 
     return (
         <main className="p-4 w-full">
-            <BudgetAnalytics/>
-            <div className="flex justify-between items-center w-full mb-4">
-                <h1 className="text-2xl font-bold">Budgeting</h1>
+            <h1 className="text-2xl font-bold mb-3">Budgeting</h1>
+            <BudgetAnalytics />
+            <div className="flex justify-end items-center w-full mb-4">
                 <div className="flex items-center gap-2">
-                    <button 
+                    <button
                         onClick={handleTransactions}
-                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
                     >
                         Transactions
                     </button>
-                    <button 
+                    <button
                         onClick={handleCreateBudget}
-                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
                     >
                         Create Budget
                     </button>
@@ -89,6 +89,6 @@ export default function BudgetList() {
                     ))
                 )}
             </div>
-        </main>
+        </main >
     );
 }

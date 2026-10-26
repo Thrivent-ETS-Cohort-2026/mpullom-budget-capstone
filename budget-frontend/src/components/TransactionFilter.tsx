@@ -7,8 +7,19 @@ interface TransactionFilterFetchProps {
 }
 
 export default function TransactionFilterFetch({ onSearch }: TransactionFilterFetchProps) {
-    const [fromDate, setFromDate] = useState<string>("");
-    const [toDate, setToDate] = useState<string>("");
+    const getFormattedDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    const [fromDate, setFromDate] = useState<string>(getFormattedDate(firstDayOfMonth));
+    const [toDate, setToDate] = useState<string>(getFormattedDate(lastDayOfMonth));
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -16,24 +27,24 @@ export default function TransactionFilterFetch({ onSearch }: TransactionFilterFe
     }
 
     return (
-        <form onSubmit={handleSubmit} className="flex gap-4 mb-4 items-end">
+        <form onSubmit={handleSubmit} className="flex gap-4 mb-2 items-end">
             <div className="flex flex-col gap-1">
-                <label className="text-xs text-slate-600 font-medium">From Date</label>
+                <label className="text-xs text-slate-400 font-medium">From Date</label>
                 <input
                     type="date"
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
-                    className="px-2 py-1 text-sm rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    className="px-2 py-1 text-sm rounded border border-slate-600 bg-slate-900 text-white focus:outline-none focus:ring-1 focus:ring-sky-500"
                 />
             </div>
 
             <div className="flex flex-col gap-1">
-                <label className="text-xs text-slate-600 font-medium">To Date</label>
+                <label className="text-xs text-slate-400 font-medium">To Date</label>
                 <input
                     type="date"
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
-                    className="px-2 py-1 text-sm rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    className="px-2 py-1 text-sm rounded border border-slate-600 bg-slate-900 text-white focus:outline-none focus:ring-1 focus:ring-sky-500"
                 />
             </div>
 

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class BudgetService {
     private final UserService userService;
     private final TransactionService transactionService;
 
-    public BudgetService(BudgetRepository budgets, UserService userService, TransactionService transactionService) {
+    public BudgetService(BudgetRepository budgets, UserService userService, @Lazy TransactionService transactionService) {
         this.budgets = budgets;
         this.userService = userService;
         this.transactionService = transactionService;

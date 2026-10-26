@@ -59,8 +59,8 @@ export default function BudgetAnalytics() {
     }
 
     return (
-        <div className="w-full p-4 border border-slate-300 rounded-lg shadow-sm bg-slate-800 text-slate-200 flex flex-col gap-4">
-            <h2 className="text-lg font-bold text-white">Budget Analytics & Tally</h2>
+        <div className="w-full p-4 rounded-lg shadow-sm bg-slate-800 text-slate-200 flex flex-col gap-4 mb-4">
+            <h2 className="text-lg font-bold text-sky-400">Total Spending</h2>
 
             <TransactionFilterFetch onSearch={handleSearch} />
 

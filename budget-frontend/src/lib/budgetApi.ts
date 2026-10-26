@@ -16,6 +16,7 @@ export async function fetchBudgets(token: string): Promise<BudgetType[]> {
 
     return response.json();
 }
+
 export async function updateBudget(token: string, changes: BudgetType): Promise<void> {
     try {
         const response = await fetch(`${BASE_URL}/${changes.id}`, {
@@ -84,23 +85,29 @@ export async function deleteBudget(token: string, budgetId: number): Promise<voi
 }
 
 export async function tallyBudgetAmounts(token: string, startDate: string, endDate: string): Promise<BudgetTallyResponse> {
-    const response = await fetch(`/api/budgets/tally?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-    });
+  const response = await fetch(`${BASE_URL}/tally`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      startDate: startDate,
+      endDate: endDate,
+    }),
+  });
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch budget tally amounts.');
-    }
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Tally request failed (${response.status}):`, errorText);
+    throw new Error('Failed to fetch budget tally amounts.');
+  }
 
-    return response.json();
+  return response.json();
 }
 
 export async function refreshBudget(token: string, budgetId: number): Promise<BudgetType> {
-    const response = await fetch(`/api/budgets/${budgetId}/refresh`, {
+    const response = await fetch(`${BASE_URL}/${budgetId}/refresh`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
