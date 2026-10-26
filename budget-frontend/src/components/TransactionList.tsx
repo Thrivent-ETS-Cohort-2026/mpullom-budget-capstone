@@ -206,7 +206,7 @@ export default function TransactionList() {
                         className={`px-4 py-2 text-sm font-medium rounded text-white transition-colors ${
                             isCreating
                                 ? "bg-rose-800 hover:bg-rose-700"
-                                : "bg-emerald-600 hover:bg-emerald-700"
+                                : "bg-emerald-400 hover:bg-emerald-600"
                         }`}
                     >
                         {isCreating ? "Cancel" : "Create Transaction"}

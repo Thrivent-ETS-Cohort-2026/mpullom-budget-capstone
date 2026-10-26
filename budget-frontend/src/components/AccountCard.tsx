@@ -225,7 +225,7 @@ export default function AccountCard({ account, onAccountUpdated }: AccountCardPr
                     </div>
                 </div>
 
-                <div className="text-3xl font-bold mr-6 text-green-400">
+                <div className="text-3xl font-bold mr-6 text-emerald-400">
                     Balance: ${currentBalance.toFixed(2)}
                 </div>
             </div>

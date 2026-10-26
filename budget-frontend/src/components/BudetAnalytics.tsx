@@ -65,9 +65,9 @@ export default function BudgetAnalytics() {
     const maxTally = tallyData?.maxAmountTally ?? 1;
     const percentage = maxTally > 0 ? (currentTally / maxTally) * 100 : 0;
 
-    let textColor = "text-green-400";
+    let textColor = "text-emerald-400";
     if (percentage >= 90) {
-        textColor = "text-green-400";
+        textColor = "text-emerald-400";
     } else if (percentage >= 75) {
         textColor = "text-yellow-300";
     } else {
@@ -75,7 +75,7 @@ export default function BudgetAnalytics() {
     }
 
     return (
-        <div className="w-full p-4 rounded-lg shadow-sm bg-slate-800 text-slate-200 flex flex-col gap-4 mb-4">
+        <div className="w-full p-4 text-slate-200 flex flex-col gap-4 mb-4">
             <h2 className="text-lg font-bold text-sky-400">Total Spending</h2>
 
             <TransactionFilterFetch onSearch={handleSearch} />

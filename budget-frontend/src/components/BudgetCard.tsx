@@ -133,9 +133,9 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
 
     const percentage = (currentAmount / maxAmount) * 100;
 
-    let textColor = "text-green-400";
+    let textColor = "text-emerald-400";
     if (percentage >= 90) {
-        textColor = "text-green-400";
+        textColor = "text-emerald-400";
     } else if (percentage >= 75) {
         textColor = "text-yellow-300";
     }
@@ -233,7 +233,7 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                     <button
                         onClick={handleEdit}
                         className={`px-3 py-1 text-xs font-medium rounded text-white transition-colors h-6.5 ${isEditing
-                            ? "bg-emerald-600 hover:bg-emerald-700"
+                            ? "bg-emerald-400 hover:bg-emerald-600"
                             : "bg-sky-700 hover:bg-sky-800"
                             }`}
                     >
