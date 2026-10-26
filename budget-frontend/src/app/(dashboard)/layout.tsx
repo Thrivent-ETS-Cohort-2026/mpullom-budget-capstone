@@ -40,7 +40,7 @@ export default function DashboardLayout({
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => router.push('/')}
-                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition shadow-sm"
+                                className="px-4 py-2 bg-rose-800 hover:bg-rose-700 text-white font-medium rounded-lg transition shadow-sm"
                             >
                                 Logout
                             </button>

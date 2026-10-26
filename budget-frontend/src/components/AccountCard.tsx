@@ -33,7 +33,6 @@ export default function AccountCard({ account, onAccountUpdated }: AccountCardPr
 
     const { currentUser } = useContext(AuthContext);
 
-    // Sync local balance whenever parent AccountList passes updated account props
     useEffect(() => {
         setCurrentBalance(account.balance ?? 0);
     }, [account.balance]);

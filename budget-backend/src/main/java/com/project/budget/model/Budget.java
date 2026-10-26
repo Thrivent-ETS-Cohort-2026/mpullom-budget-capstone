@@ -31,6 +31,8 @@ public class Budget {
     @Column(name = "target_period", nullable = false)
     private TargetPeriod targetPeriod;
 
+    //Derive based on transactions
+    //=> and category table
     @Column(name = "current_amount", nullable = false)
     private Double currentAmount;
 

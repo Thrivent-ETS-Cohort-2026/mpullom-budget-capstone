@@ -129,7 +129,7 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                             <button
                                 type="button"
                                 onClick={onSwitchToLogin}
-                                className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-md transition text-sm font-bold cursor-pointer shrink-0"
+                                className="w-8 h-8 rounded-full bg-rose-800 hover:bg-rose-700 text-white flex items-center justify-center shadow-md transition text-sm font-bold cursor-pointer shrink-0"
                                 title="Close"
                             >
                                 ✕

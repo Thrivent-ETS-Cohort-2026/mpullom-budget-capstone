@@ -205,7 +205,7 @@ export default function TransactionList() {
                         onClick={() => setIsCreating(!isCreating)}
                         className={`px-4 py-2 text-sm font-medium rounded text-white transition-colors ${
                             isCreating
-                                ? "bg-red-600 hover:bg-red-700"
+                                ? "bg-rose-800 hover:bg-rose-700"
                                 : "bg-emerald-600 hover:bg-emerald-700"
                         }`}
                     >

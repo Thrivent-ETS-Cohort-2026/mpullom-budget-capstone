@@ -140,7 +140,7 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
         textColor = "text-yellow-300";
     }
     else {
-        textColor = "text-red-400";
+        textColor = "text-rose-800";
     }
 
     return (
@@ -242,7 +242,7 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
 
                     <button
                         onClick={handleDelete}
-                        className="px-3 py-1 text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 transition-colors h-6.5"
+                        className="px-3 py-1 text-xs font-medium rounded text-white bg-rose-800 hover:bg-rose-700 transition-colors h-6.5"
                     >
                         Delete
                     </button>

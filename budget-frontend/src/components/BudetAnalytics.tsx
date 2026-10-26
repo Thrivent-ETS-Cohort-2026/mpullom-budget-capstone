@@ -71,7 +71,7 @@ export default function BudgetAnalytics() {
     } else if (percentage >= 75) {
         textColor = "text-yellow-300";
     } else {
-        textColor = "text-red-400";
+        textColor = "text-rose-800";
     }
 
     return (
@@ -80,7 +80,7 @@ export default function BudgetAnalytics() {
 
             <TransactionFilterFetch onSearch={handleSearch} />
 
-            {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
+            {error && <p className="text-xs text-rose-800 font-medium">{error}</p>}
             {loading && <p className="text-xs text-sky-400 animate-pulse">Calculating tally...</p>}
 
             <div className="flex justify-between items-center bg-sky-900/50 p-4 rounded-lg border border-sky-700">

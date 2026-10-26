@@ -58,7 +58,7 @@ export default function TransactionCard({ transaction, onDeleted }: TransactionC
                 <button
                     type="button"
                     onClick={handleDelete}
-                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-xs font-medium rounded text-white transition-colors"
+                    className="px-3 py-1.5 bg-rose-800 hover:bg-rose-700 text-xs font-medium rounded text-white transition-colors"
                 >
                     Delete
                 </button>
