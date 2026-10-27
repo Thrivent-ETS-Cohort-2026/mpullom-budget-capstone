@@ -1,5 +1,7 @@
+'use client'
+
 import { useContext, useState } from "react";
-import { BudgetType, TargetPeriod, TransactionType } from "@/types/DataTypes";
+import { BudgetType, TargetPeriod, TransactionType, Category } from "@/types/DataTypes";
 import { updateBudget, deleteBudget } from "@/lib/budgetApi";
 import { createTransaction } from "@/lib/transactionApi";
 import { AuthContext } from "@/context/AuthContext";
@@ -18,10 +20,12 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
     const [currentAmount, setCurrentAmount] = useState(budget.currentAmount ?? 0);
     const [maxAmount, setMaxAmount] = useState(budget.maxAmount ?? 1);
     const [targetPeriod, setTargetPeriod] = useState<TargetPeriod>(budget.targetPeriod);
+    const [category, setCategory] = useState<Category>(budget.category ?? Category.FOOD);
 
     const [withdrawAmount, setWithdrawAmount] = useState<string>("");
 
     const TARGET_PERIODS = ["MONTHLY", "QUARTERLY", "YEARLY"] as const;
+    const CATEGORIES = Object.values(Category);
     const { currentUser } = useContext(AuthContext);
 
     async function handleEnableToggle() {
@@ -36,7 +40,8 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                     enabled: nextEnabled,
                     currentAmount: currentAmount,
                     maxAmount: maxAmount,
-                    targetPeriod: targetPeriod
+                    targetPeriod: targetPeriod,
+                    category: category
                 });
         }
         else {
@@ -58,7 +63,8 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                     transactionType: TransactionType.BUDGET_WITHDRAWL,
                     amount: amount,
                     description: `Withdrawal from ${description || `Budget #${budget.id}`}`,
-                    recurrencePeriod: 0
+                    recurrencePeriod: 0,
+                    category: category
                 };
 
                 await createTransaction(currentUser.token, transactionData);
@@ -73,7 +79,8 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                         enabled: budget.enabled,
                         currentAmount: newCurrentAmount,
                         maxAmount: maxAmount,
-                        targetPeriod: targetPeriod
+                        targetPeriod: targetPeriod,
+                        category: category
                     });
 
                 setCurrentAmount(newCurrentAmount);
@@ -105,7 +112,8 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                         enabled: budget.enabled,
                         currentAmount: currentAmount,
                         maxAmount: maxAmount,
-                        targetPeriod: targetPeriod
+                        targetPeriod: targetPeriod,
+                        category: category
                     });
             }
             else {
@@ -149,7 +157,7 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
             : "bg-slate-600 text-sky-400 border-slate-300"
             }`}>
             <div className="flex justify-between items-center w-full">
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col gap-1.5">
                     <div>
                         <input
                             type="text"
@@ -161,7 +169,7 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                         />
                     </div>
 
-                    <div className="flex items-center gap-1 text-xs mt-0.5">
+                    <div className="flex items-center gap-1.5 text-xs">
                         <span className="font-bold">$</span>
                         <input
                             type="number"
@@ -187,6 +195,24 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                             ))}
                         </select>
                     </div>
+
+                    {/* Category Selection Dropdown */}
+                    <div className="flex items-center gap-1 text-xs">
+                        <span className="text-sky-200 font-medium">Category:</span>
+                        <select
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value as unknown as Category)}
+                            disabled={!isEditing}
+                            className={`bg-transparent border-2 rounded px-1 text-xs transition-colors ${isEditing ? "border-white bg-sky-700 text-white cursor-pointer" : "border-transparent cursor-default appearance-none font-semibold text-white"
+                                }`}
+                        >
+                            {CATEGORIES.map((cat) => (
+                                <option key={cat} value={cat} className="bg-sky-700 text-white">
+                                    {cat}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 <div className={`flex items-center gap-1 text-2xl font-extrabold mr-6 ${textColor}`}>
@@ -204,23 +230,6 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
 
             <div className="flex justify-between items-center mt-0.5 w-full">
                 <div className="flex gap-4 items-end">
-                    <div className="flex flex-col gap-1">
-                        <input
-                            type="number"
-                            placeholder="Amount"
-                            value={withdrawAmount}
-                            disabled={isEditing}
-                            onChange={(e) => setWithdrawAmount(e.target.value)}
-                            className="px-2 py-1 text-xs rounded bg-sky-900 text-white placeholder-sky-300 border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-28"
-                        />
-                        <button
-                            onClick={handleWithdraw}
-                            className="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors"
-                        >
-                            Withdraw
-                        </button>
-                    </div>
-
                     <button
                         onClick={handleEnableToggle}
                         className="h-14 w-14 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors"

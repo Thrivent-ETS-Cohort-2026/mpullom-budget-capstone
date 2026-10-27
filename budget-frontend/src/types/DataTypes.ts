@@ -67,9 +67,20 @@ export interface Transaction {
   timestamp?: string
   recurrencePeriod: number;
   description: string;
+  category: Category;
 }
 
 export type TargetPeriod = "MONTHLY" | "QUARTERLY" | "YEARLY";
+
+export enum Category {
+    FOOD = "FOOD",
+    GROCERIES = "GROCERIES",
+    GAS = "GAS",
+    WORK = "WORK",
+    BILLS = "BILLS",
+    UNEXPECTED = "UNEXPECTED",
+    Other = "Other"
+}
 
 export interface BudgetType {
   id: number;
@@ -79,6 +90,7 @@ export interface BudgetType {
   currentAmount: number;
   maxAmount: number;
   enabled: boolean;
+  category: Category;
 }
 
 export interface BudgetRequest {

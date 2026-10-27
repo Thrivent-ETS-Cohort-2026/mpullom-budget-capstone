@@ -36,6 +36,30 @@ export default function TransactionCard({ transaction, onDeleted }: TransactionC
         }
     }
 
+    // Format description for transfers or general cleanup
+    let displayDescription = transaction.description || "No description";
+    const isTransfer = transaction.transactionType?.toString().includes("TRANSFER");
+
+    if (isTransfer) {
+        displayDescription = displayDescription
+            .replace(/withdrawal/gi, "")
+            .replace(/deposit/gi, "")
+            .replace(/from Account/gi, "from Account")
+            .replace(/to Account/gi, "to Account")
+            .replace(/\s+/g, " ")
+            .trim();
+        
+        if (!displayDescription.toLowerCase().includes("transfer")) {
+            displayDescription = `Transfer ${displayDescription}`;
+        }
+    }
+
+    // Append [Recurrent] if recurrence period is greater than 0
+    const isRecurrent = (transaction.recurrencePeriod ?? 0) > 0;
+    if (isRecurrent && !displayDescription.startsWith("[Recurrent]")) {
+        displayDescription = `[Recurrent] ${displayDescription}`;
+    }
+
     return (
         <div className="w-full p-4 border border-slate-700 rounded-lg bg-slate-800 text-slate-100 flex justify-between items-center shadow-sm">
             <Notification
@@ -44,8 +68,14 @@ export default function TransactionCard({ transaction, onDeleted }: TransactionC
             />
 
             <div className="flex flex-col gap-1">
-                <span className="font-semibold text-sky-400">{transaction.transactionType}</span>
-                <span className="text-sm text-slate-300">{transaction.description || "No description"}</span>
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sky-400">{transaction.transactionType}</span>
+                    {/* Display category badge for all transactions including transfers */}
+                    <span className="px-2 py-0.5 bg-sky-900 text-sky-200 text-xs font-medium rounded-full border border-sky-700">
+                        {transaction.category || (isTransfer ? "TRANSFER" : "GENERAL")}
+                    </span>
+                </div>
+                <span className="text-sm text-slate-300">{displayDescription}</span>
                 <span className="text-xs text-slate-500">
                     {transaction.timestamp ? new Date(transaction.timestamp).toLocaleString() : "No timestamp"}
                 </span>
