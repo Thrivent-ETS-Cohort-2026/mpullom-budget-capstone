@@ -2,10 +2,8 @@
 
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "@/context/AuthContext";
-import { BudgetType, Transaction } from "@/types/DataTypes";
-import { fetchBudgets } from "@/lib/budgetApi";
+import { tallyBudgets } from "@/lib/budgetApi";
 import TransactionFilterFetch from "./TransactionFilter";
-import { getTransactions } from "@/lib/transactionApi";
 
 export default function BudgetAnalytics() {
     const [currentTally, setCurrentTally] = useState<number>(0);
@@ -42,18 +40,10 @@ export default function BudgetAnalytics() {
             const startDateTime = `${fromDate}T00:00:00`;
             const endDateTime = `${toDate}T23:59:59`;
 
-            const budgetsData: BudgetType[] = await fetchBudgets(currentUser.token).catch(() => []);
-            const totalMax = (budgetsData || []).reduce((acc, b) => acc + (b.maxAmount ?? 0), 0);
-            setMaxTally(totalMax > 0 ? totalMax : 1);
+            const tallyResult = await tallyBudgets(currentUser.token, startDateTime, endDateTime);
 
-            const transactionsData: Transaction[] = await getTransactions(
-                currentUser.token,
-                startDateTime,
-                endDateTime
-            ).catch(() => []);
-
-            const totalCurrent = (transactionsData || []).reduce((acc, t) => acc + (t.amount ?? 0), 0);
-            setCurrentTally(totalCurrent);
+            setCurrentTally(tallyResult.currentAmountTally ?? 0);
+            setMaxTally(tallyResult.currentAmountTally > 0 ? tallyResult.maxAmountTally : 1);
 
         } catch (err) {
             console.error("Failed to fetch budget analytics:", err);
@@ -69,16 +59,8 @@ export default function BudgetAnalytics() {
         }
     }, [currentUser]);
 
-    const percentage = maxTally > 0 ? (currentTally / maxTally) * 100 : 0;
-
-    let textColor = "text-emerald-400";
-    if (percentage >= 90) {
-        textColor = "text-emerald-400";
-    } else if (percentage >= 75) {
-        textColor = "text-yellow-300";
-    } else {
-        textColor = "text-rose-800";
-    }
+    const progressPercent = maxTally > 0 ? Math.min(Math.max((currentTally / maxTally) * 100, 0), 100) : 0;
+    const isOverBudget = currentTally > maxTally;
 
     return (
         <div className="w-full p-4 text-slate-200 flex flex-col gap-4 mb-4">
@@ -89,20 +71,19 @@ export default function BudgetAnalytics() {
             {error && <p className="text-xs text-rose-800 font-medium">{error}</p>}
             {loading && <p className="text-xs text-sky-400 animate-pulse">Calculating tally...</p>}
 
-            <div className="flex justify-between items-center bg-sky-900/50 p-4 rounded-lg border border-sky-700">
-                <div className="flex flex-col">
-                    <span className="text-xs text-slate-400 font-medium">Filtered Tally Summary</span>
-                    <span className="text-sm font-semibold text-white">Current vs Max Total</span>
+            <div className="w-full p-4 border border-sky-600 rounded-xl bg-sky-800 text-slate-100 flex flex-col gap-2 shadow-md">
+                <div className="flex justify-between items-center text-sm font-semibold">
+                    <span>Total Spent: <span className="text-emerald-400">${currentTally.toFixed(2)}</span></span>
+                    <span>Max Total: <span className="text-slate-200">${maxTally.toFixed(2)}</span></span>
                 </div>
 
-                <div className={`flex items-center gap-1 text-2xl font-extrabold mr-2 ${textColor}`}>
-                    <div className="bg-transparent border-transparent rounded px-1 text-right font-extrabold">
-                        ${Number(currentTally).toFixed(2)}
-                    </div>
-                    <div>/</div>
-                    <div className="bg-transparent border-transparent rounded px-1 text-right font-extrabold">
-                        ${Number(maxTally).toFixed(2)}
-                    </div>
+                <div className="w-full bg-sky-950 rounded-full h-3.5 overflow-hidden border border-sky-600">
+                    <div
+                        className={`h-full transition-all duration-500 rounded-full ${
+                            isOverBudget ? "bg-rose-500" : "bg-emerald-500"
+                        }`}
+                        style={{ width: `${progressPercent}%` }}
+                    />
                 </div>
             </div>
         </div>
