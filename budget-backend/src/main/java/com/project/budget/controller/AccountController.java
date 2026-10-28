@@ -24,11 +24,8 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/accounts")
-@CrossOrigin(
-    origins = "http://localhost:3000", 
-    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE},
-    allowedHeaders = {"Authorization", "Content-Type"}
-)
+@CrossOrigin(origins = "http://localhost:3000", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT,
+        RequestMethod.DELETE }, allowedHeaders = { "Authorization", "Content-Type" })
 public class AccountController {
 
     private final AccountService accountService;
@@ -65,8 +62,23 @@ public class AccountController {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        
+
         String token = authHeader.substring(7);
         return ResponseEntity.ok(accountService.getAccountsByToken(token));
+    }
+
+    @PutMapping("/{acctNo}")
+    public ResponseEntity<Account> updateAccount(
+            @PathVariable Long acctNo,
+            @Valid @RequestBody AccountRequest updatedAccountRequest,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        Account savedAccount = accountService.updateAccount(token, acctNo, updatedAccountRequest);
+        return ResponseEntity.ok(savedAccount);
     }
 }

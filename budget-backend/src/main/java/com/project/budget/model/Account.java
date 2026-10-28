@@ -52,8 +52,16 @@ public class Account {
         return this.user;
     }
 
+    public User setUser(User newUser) {
+        return this.user = newUser;
+    }
+
     public AccountType getAccountType() {
         return this.accountType;
+    }
+
+    public AccountType setAccountType(AccountType accountType) {
+        return this.accountType = accountType;
     }
 
     public Double getBalance() {

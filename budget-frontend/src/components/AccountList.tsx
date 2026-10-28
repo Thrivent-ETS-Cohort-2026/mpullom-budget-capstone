@@ -6,11 +6,16 @@ import { Account } from "@/types/DataTypes";
 import { fetchAccounts } from "@/lib/accountApi";
 import { AuthContext } from "@/context/AuthContext";
 import AccountCard from "./AccountCard";
+import AccountEditor from "./AccountEditor";
 
 export default function AccountList() {
     const router = useRouter();
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isCreating, setIsCreating] = useState<boolean>(false);
+    
+    const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+
     const { currentUser } = useContext(AuthContext);
 
     const loadAccounts = useCallback(async (isInitialLoad = false) => {
@@ -43,7 +48,19 @@ export default function AccountList() {
     }
 
     function handleAccountCreation() {
-        
+        setIsCreating(true);
+        setEditingAccount(null); // Ensure edit mode is closed when creating
+    }
+
+    function handleEditorClose() {
+        setIsCreating(false);
+        setEditingAccount(null);
+    }
+
+    function handleEditorSaved() {
+        loadAccounts(false);
+        setIsCreating(false);
+        setEditingAccount(null);
     }
 
     if (loading) {
@@ -52,6 +69,15 @@ export default function AccountList() {
 
     return (
         <main className="p-4 w-full">
+            {/* Render AccountEditor for either Creating or Editing with background blur */}
+            {(isCreating || editingAccount !== null) && (
+                <AccountEditor
+                    account={editingAccount}
+                    onClose={handleEditorClose}
+                    onSaved={handleEditorSaved}
+                />
+            )}
+
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Banking</h1>
                 <div className="flex items-center gap-2">
@@ -79,6 +105,7 @@ export default function AccountList() {
                             key={account.accountNumber}
                             account={account}
                             onAccountUpdated={() => loadAccounts(false)}
+                            onEditAccount={() => setEditingAccount(account)}
                         />
                     ))
                 )}

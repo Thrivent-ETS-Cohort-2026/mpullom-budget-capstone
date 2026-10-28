@@ -108,3 +108,10 @@ export interface BudgetTallyResponse {
   currentAmountTally: number;
   maxAmountTally: number;
 }
+
+export interface AccountRequest {
+    accountNumber?: number;
+    accountType: string;
+    balance: number;
+    accountStatus: string;
+}

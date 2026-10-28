@@ -11,9 +11,10 @@ import { createAccountTransfer } from "@/lib/transferApi";
 interface AccountCardProps {
     account: Account;
     onAccountUpdated?: () => void;
+    onEditAccount?: () => void;
 }
 
-export default function AccountCard({ account, onAccountUpdated }: AccountCardProps) {
+export default function AccountCard({ account, onAccountUpdated, onEditAccount }: AccountCardProps) {
     if (!account) return null;
 
     const [currentBalance, setCurrentBalance] = useState(account.balance ?? 0);
@@ -149,8 +150,8 @@ export default function AccountCard({ account, onAccountUpdated }: AccountCardPr
         }
     }
 
-    function handleAccountEdit(){
-        
+    function handleAccountEdit() {
+        onEditAccount?.(); // Triggers the parent editor modal popup
     }
 
     const isDepositTyping = depositAmount.length > 0;
