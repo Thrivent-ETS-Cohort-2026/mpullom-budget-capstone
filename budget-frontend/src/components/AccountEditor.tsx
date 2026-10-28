@@ -37,10 +37,12 @@ export default function AccountEditor({ account, onClose, onSaved }: AccountEdit
         if (!currentUser) return;
 
         try {
+            // Include 'user' so backend validation and user association succeed
             const accountData: any = {
                 accountType,
                 balance: parseFloat(balance) || 0,
-                accountStatus
+                accountStatus,
+                user: currentUser
             };
 
             if (account && account.accountNumber != null) {
@@ -58,7 +60,6 @@ export default function AccountEditor({ account, onClose, onSaved }: AccountEdit
     }
 
     return (
-        /* Full-screen fixed overlay that blurs the background and centers the modal */
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <div className="w-full max-w-md p-6 border border-sky-600 rounded-xl bg-sky-800 text-slate-100 flex flex-col gap-4 shadow-2xl">
                 <Notification

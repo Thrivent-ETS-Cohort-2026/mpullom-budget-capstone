@@ -49,7 +49,7 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(Account account, TransactionType transactionType, Double amount,
+public Transaction(Account account, TransactionType transactionType, Double amount,
             Long recurrencePeriod, String description, LocalDateTime timestamp, Category category) {
         if (account == null) {
             throw new IllegalArgumentException("Account cannot be null.");
@@ -71,7 +71,7 @@ public class Transaction {
         this.recurrencePeriod = recurrencePeriod;
         this.description = description;
         this.timestamp = (timestamp != null) ? timestamp : LocalDateTime.now();
-        this.category = category;
+        this.category = (category != null) ? category : Category.OTHER; 
     }
 
     public Long getTransactionId() {
