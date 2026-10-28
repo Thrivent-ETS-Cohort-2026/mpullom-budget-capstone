@@ -119,7 +119,7 @@ public class BudgetService {
         return budgets.save(budget);
     }
 
-    @Transactional
+@Transactional
     public void deleteBudget(String token, Long budgetId) {
         Budget budget = budgets.findById(budgetId)
                 .orElseThrow(
@@ -147,8 +147,13 @@ public class BudgetService {
         List<Budget> userBudgets = budgets.findByUser(user);
         double maxTally = 0.0;
         for (Budget budget : userBudgets) {
+            if (!budget.getEnabled()) {
+                continue;
+            }
+
             if (budget.getMaxAmount() != null) {
-                maxTally += budget.getMaxAmount();
+                double adjustedMax = calculatePeriodAdjustedMax(budget, startDate, endDate);
+                maxTally += adjustedMax;
             }
         }
 
@@ -169,6 +174,10 @@ public class BudgetService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Current user is not authorized to access this budget");
         }
 
+        if (!budget.getEnabled()) {
+            return new BudgetTallyResponse(0.0, 0.0);
+        }
+
         Category budgetCategory = budget.getCategory();
 
         List<Transaction> allFilteredTransactions = transactionService.filterTransactions(token, null, startDate, endDate);
@@ -184,8 +193,17 @@ public class BudgetService {
             }
         }
 
-        double maxTally = budget.getMaxAmount() != null ? budget.getMaxAmount() : 0.0;
+        double maxTally = budget.getMaxAmount() != null ? calculatePeriodAdjustedMax(budget, startDate, endDate) : 0.0;
 
         return new BudgetTallyResponse(currentTally, maxTally);
+    }
+
+
+    private double calculatePeriodAdjustedMax(Budget budget, LocalDateTime startDate, LocalDateTime endDate) {
+        if (budget.getMaxAmount() == null) {
+            return 0.0;
+        }
+
+        return budget.getMaxAmount();
     }
 }
