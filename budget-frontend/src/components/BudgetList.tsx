@@ -84,12 +84,12 @@ export default function BudgetList() {
 
             <div className="flex justify-end items-center w-full mb-4">
                 <div className="flex items-center gap-2">
-                    <button
+                    {/* <button
                         onClick={handleTransactions}
                         className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
                     >
                         Transactions
-                    </button>
+                    </button> */}
                     <button
                         onClick={handleCreateBudget}
                         className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"

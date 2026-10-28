@@ -44,8 +44,6 @@ export default function TransactionList() {
     const isBankingRoute = pathname === '/banking/transactions';
     const isBudgetingRoute = pathname === '/budgeting/transactions';
 
-    const requiresBudget = transactionType === TransactionType.ACCOUNT_WITHDRAWL || transactionType === TransactionType.BUDGET_DEPOSIT;
-
     async function fetchTransactionsList() {
         if (!currentUser) return;
         try {
@@ -105,12 +103,8 @@ export default function TransactionList() {
 
         let selectedBudget: BudgetType | undefined = undefined;
 
-        if (requiresBudget) {
-            if (!budgetId || budgetId === 0) {
-                setNotificationMessage("Please select a budget from the dropdown above before submitting this transaction.");
-                return;
-            }
-
+        // Budget selection is now optional, but if selected, check if it's disabled
+        if (budgetId && budgetId !== 0) {
             selectedBudget = budgets.find(b => b.id === Number(budgetId));
             if (selectedBudget && selectedBudget.enabled === false) {
                 setNotificationMessage("Cannot create a transaction for a disabled budget.");
@@ -131,14 +125,14 @@ export default function TransactionList() {
             }
 
             let finalDescription = description ? description.trim() : "";
-            if (requiresBudget && selectedBudget) {
+            if (selectedBudget) {
                 const budgetIdentifier = selectedBudget.description || `Budget #${selectedBudget.id}`;
                 const defaultPrefix = transactionType === TransactionType.BUDGET_DEPOSIT 
                     ? `Deposit to Budget #${selectedBudget.id}` 
                     : `Withdrawal from Account #${accountNumber}[${budgetIdentifier}]`;
 
                 finalDescription = finalDescription ? finalDescription : defaultPrefix;
-            } else if (!requiresBudget && accountNumber > 0) {
+            } else if (accountNumber > 0) {
                 const defaultPrefix = transactionType === TransactionType.ACCOUNT_DEPOSIT 
                     ? `Deposit to Account #${accountNumber}` 
                     : `Withdrawal from Account #${accountNumber}`;
@@ -154,7 +148,7 @@ export default function TransactionList() {
                 timestamp: formattedTimestamp
             };
 
-            if (requiresBudget) {
+            if (budgetId && budgetId !== 0) {
                 transactionData.budget = { id: Number(budgetId) };
             }
 
@@ -178,7 +172,7 @@ export default function TransactionList() {
         } catch (err: any) {
             console.error("Failed to create transaction:", err);
 
-            let errorMsg = "Failed to create transaction. Check if the budget is active and funds are sufficient.";
+            let errorMsg = "Failed to create transaction. Check if funds are sufficient.";
             if (err instanceof Error) {
                 errorMsg = err.message;
             } else if (typeof err === "string") {
@@ -289,24 +283,22 @@ export default function TransactionList() {
                             </select>
                         </div>
                     )}
-
-                    {requiresBudget && (
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium">Associated Budget</label>
-                            <select
-                                value={budgetId}
-                                onChange={(e) => setBudgetId(Number(e.target.value))}
-                                className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
-                            >
-                                <option value={0} disabled>Select Associated Budget</option>
-                                {budgets.map(b => (
-                                    <option key={b.id} value={b.id}>
-                                        {b.description || `Budget #${b.id}`} {b.enabled === false ? "(Disabled)" : ""}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
+{/* 
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Associated Budget (Optional)</label>
+                        <select
+                            value={budgetId}
+                            onChange={(e) => setBudgetId(Number(e.target.value))}
+                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                        >
+                            <option value={0}>None (No Budget)</option>
+                            {budgets.map(b => (
+                                <option key={b.id} value={b.id}>
+                                    {b.description || `Budget #${b.id}`} {b.enabled === false ? "(Disabled)" : ""}
+                                </option>
+                            ))}
+                        </select>
+                    </div> */}
 
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium">Date & Time</label>
