@@ -151,7 +151,7 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
     }
 
     function handleAccountEdit() {
-        onEditAccount?.(); // Triggers the parent editor modal popup
+        onEditAccount?.(); 
     }
 
     const isDepositTyping = depositAmount.length > 0;
@@ -166,28 +166,28 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                 onClose={() => setNotificationMessage("")}
             />
 
-            <div className="flex justify-between items-center w-full">
-                <div className="flex flex-col gap-0.5">
+            <div className="flex justify-between items-start w-full">
+                <div className="flex flex-col gap-1">
                     <div className="font-semibold text-lg">
                         {account.accountType + " Account #" + account.accountNumber}
                     </div>
+                    <div className="text-2xl font-bold text-emerald-400">
+                        Balance: ${currentBalance.toFixed(2)}
+                    </div>
                 </div>
 
-                <div className="text-3xl font-bold mr-6 text-emerald-400">
-                    Balance: ${currentBalance.toFixed(2)}
-                </div>
+                <button
+                    onClick={handleAccountEdit}
+                    className="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors shadow-sm"
+                >
+                    Edit
+                </button> 
             </div>
 
             <div className="flex flex-col gap-2 mt-1">
                 <div className="grid grid-cols-3 gap-3 w-full items-end">
 
                     <div className="flex flex-col gap-1">
-                        <button
-                            onClick={handleAccountEdit}
-                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm"
-                        >
-                            Edit
-                        </button> 
                         <input
                             type="number"
                             placeholder="Deposit Amount"
