@@ -16,9 +16,9 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
     const [emailInput, setEmailInput] = useState<string>("");
     const [passInput, setPassInput] = useState<string>("");
     const [notificationMessage, setNotificationMessage] = useState<string>("");
-    
+
     const pathname = usePathname();
-    const { currentUser } = useContext(AuthContext);
+    const { currentUser, updateUser: updateUserContext, setCurrentUser } = useContext(AuthContext);
 
     const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const isValidPhoneNumber = (phone: string) => /^\+?[\d\s\-()]{7,15}$/.test(phone);
@@ -58,7 +58,7 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
     }
 
     async function handleEdit() {
-        if ((pathname == '/budgeting') || (pathname == '/banking')){
+        if ((pathname == '/budgeting') || (pathname == '/banking')) {
             if (currentUser == null) {
                 console.log("Skipping edit as current user is null");
                 return;
@@ -86,10 +86,19 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                     updatePayload.password = passInput.trim();
                 }
 
+                // 1. Wait for backend update to complete (returns void)
                 await updateUser(updatePayload, currentUser.token);
+
+                // 2. Update context using your local updatePayload directly
+                if (updateUserContext) {
+                    updateUserContext(updatePayload);
+                } else if (setCurrentUser) {
+                    setCurrentUser({ ...currentUser, ...updatePayload });
+                }
+
                 setNotificationMessage("Profile updated successfully!");
                 setPassInput("");
-                
+
                 setTimeout(() => {
                     onSwitchToLogin?.();
                 }, 1200);
