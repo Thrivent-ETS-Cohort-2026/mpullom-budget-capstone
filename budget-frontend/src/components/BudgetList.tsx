@@ -71,6 +71,12 @@ export default function BudgetList() {
     const formattedStart = `${startDate}T00:00:00`;
     const formattedEnd = `${endDate}T23:59:59`;
 
+    const sortedBudgets = [...budgets].sort((a, b) => {
+        const descA = (a.description || `Budget #${a.id}`).toLowerCase();
+        const descB = (b.description || `Budget #${b.id}`).toLowerCase();
+        return descA.localeCompare(descB);
+    });
+
     return (
         <main className="p-4 w-full">
             <h1 className="text-2xl font-bold mb-3">Budgeting</h1>
@@ -100,10 +106,10 @@ export default function BudgetList() {
             </div>
 
             <div className="w-full flex flex-col gap-3 items-stretch">
-                {budgets.length === 0 ? (
+                {sortedBudgets.length === 0 ? (
                     <p className="text-slate-600 font-medium">No active budgets found.</p>
                 ) : (
-                    budgets.map((budget) => (
+                    sortedBudgets.map((budget) => (
                         <BudgetCard
                             key={budget.id}
                             budget={budget}
