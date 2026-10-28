@@ -83,3 +83,25 @@ export async function deleteBudget(token: string, budgetId: number): Promise<voi
         throw error;
     }
 }
+
+export async function tallyBudgets(token: string, startDate: string, endDate: string): Promise<BudgetTallyResponse> {
+    try {
+        const response = await fetch(`${BASE_URL}/tally`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ startDate, endDate })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to tally budget amounts.");
+        }
+
+        return response.json();
+    } catch (error: any) {
+        throw new Error(error.message || "An unexpected error occurred during budget tallying.");
+    }
+}

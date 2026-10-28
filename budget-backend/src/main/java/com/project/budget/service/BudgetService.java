@@ -3,12 +3,15 @@ package com.project.budget.service;
 import com.project.budget.dto.BudgetRequest;
 import com.project.budget.dto.BudgetTallyResponse;
 import com.project.budget.model.Budget;
+import com.project.budget.model.Category;
 import com.project.budget.model.Transaction;
+import com.project.budget.model.TransactionType;
 import com.project.budget.model.User;
 import com.project.budget.repository.BudgetRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -54,7 +57,7 @@ public class BudgetService {
                 request.maxAmount(),
                 request.enabled(),
                 request.startDate(),
-            request.category());
+                request.category());
         return budgets.save(budget);
     }
 
@@ -125,14 +128,14 @@ public class BudgetService {
         budgets.delete(budget);
     }
 
-@Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public BudgetTallyResponse tallyFilteredTransactionsAmount(String token, LocalDateTime startDate, LocalDateTime endDate) {
         User user = userService.getUserByToken(token);
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null");
         }
 
-        List<Transaction> filteredTransactions = transactionService.filterTransactions(token, null, startDate, endDate);
+        List<Transaction> filteredTransactions = transactionService.filterTransactions(token, TransactionType.ACCOUNT_WITHDRAWL, startDate, endDate);
 
         double currentTally = 0.0;
         for (Transaction tx : filteredTransactions) {
@@ -148,6 +151,40 @@ public class BudgetService {
                 maxTally += budget.getMaxAmount();
             }
         }
+
+        return new BudgetTallyResponse(currentTally, maxTally);
+    }
+
+    @Transactional(readOnly = true)
+    public BudgetTallyResponse tallyBudgetCategoryTransactions(String token, Long budgetId, LocalDateTime startDate, LocalDateTime endDate) {
+        User user = userService.getUserByToken(token);
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+
+        Budget budget = budgets.findById(budgetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget " + budgetId + " not found"));
+
+        if (budget.getUser().getToken() == null || !budget.getUser().getToken().equals(token)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Current user is not authorized to access this budget");
+        }
+
+        Category budgetCategory = budget.getCategory();
+
+        List<Transaction> allFilteredTransactions = transactionService.filterTransactions(token, null, startDate, endDate);
+        
+        List<Transaction> categoryTransactions = allFilteredTransactions.stream()
+                .filter(tx -> tx.getCategory() != null && tx.getCategory().equals(budgetCategory))
+                .collect(Collectors.toList());
+
+        double currentTally = 0.0;
+        for (Transaction tx : categoryTransactions) {
+            if (tx.getAmount() != null) {
+                currentTally += tx.getAmount();
+            }
+        }
+
+        double maxTally = budget.getMaxAmount() != null ? budget.getMaxAmount() : 0.0;
 
         return new BudgetTallyResponse(currentTally, maxTally);
     }

@@ -102,4 +102,25 @@ public class BudgetController {
         );
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{id}/tally")
+    public ResponseEntity<BudgetTallyResponse> tallyBudgetCategoryTransactions(
+            @PathVariable Long id,
+            @Valid @RequestBody BudgetTallyRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+
+        BudgetTallyResponse response = budgetService.tallyBudgetCategoryTransactions(
+                token,
+                id,
+                request.startDate(),
+                request.endDate()
+        );
+        return ResponseEntity.ok(response);
+    }
 }
