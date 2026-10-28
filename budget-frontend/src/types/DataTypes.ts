@@ -72,16 +72,21 @@ export interface Transaction {
   category: Category;
 }
 
-export type TargetPeriod = "MONTHLY" | "QUARTERLY" | "YEARLY";
+
+export enum TargetPeriod {
+  MONTHLY = "MONTHLY",
+  QUARTERLY = "QUARTERLY",
+  YEARLY = "YEARLY"
+}
 
 export enum Category {
-    FOOD = "FOOD",
-    GROCERIES = "GROCERIES",
-    GAS = "GAS",
-    WORK = "WORK",
-    BILLS = "BILLS",
-    UNEXPECTED = "UNEXPECTED",
-    Other = "Other"
+  FOOD = "FOOD",
+  GROCERIES = "GROCERIES",
+  GAS = "GAS",
+  WORK = "WORK",
+  BILLS = "BILLS",
+  UNEXPECTED = "UNEXPECTED",
+  Other = "Other"
 }
 
 export interface BudgetType {
@@ -92,6 +97,7 @@ export interface BudgetType {
   currentAmount: number;
   maxAmount: number;
   enabled: boolean;
+  startDate: string;
   category: Category;
 }
 
@@ -110,8 +116,8 @@ export interface BudgetTallyResponse {
 }
 
 export interface AccountRequest {
-    accountNumber?: number;
-    accountType: string;
-    balance: number;
-    accountStatus: string;
+  accountNumber?: number;
+  accountType: string;
+  balance: number;
+  accountStatus: string;
 }

@@ -60,7 +60,7 @@ export default function AccountEditor({ account, onClose, onSaved }: AccountEdit
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div className="w-full max-w-md p-6 border border-sky-600 rounded-xl bg-sky-800 text-slate-100 flex flex-col gap-4 shadow-2xl">
                 <Notification
                     message={notificationMessage}

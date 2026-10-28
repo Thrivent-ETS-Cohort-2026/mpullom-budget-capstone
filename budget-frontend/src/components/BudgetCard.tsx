@@ -1,7 +1,7 @@
 'use client'
 
 import { useContext, useState, useEffect } from "react";
-import { BudgetType, TargetPeriod, Category } from "@/types/DataTypes";
+import { BudgetType } from "@/types/DataTypes";
 import { updateBudget, deleteBudget, tallyBudgetCategoryTransactions } from "@/lib/budgetApi";
 import { AuthContext } from "@/context/AuthContext";
 
@@ -10,21 +10,23 @@ interface BudgetCardProps {
     startDate: string;
     endDate: string;
     onDeleted?: () => void;
+    onEditBudget?: () => void;
 }
 
-export default function BudgetCard({ budget, startDate, endDate, onDeleted }: BudgetCardProps) {
+export default function BudgetCard({ budget, startDate, endDate, onDeleted, onEditBudget }: BudgetCardProps) {
     if (!budget) return null;
 
     const [isEnabled, setIsEnabled] = useState(budget.enabled);
-    const [isEditing, setIsEditing] = useState(false);
-    const [description, setDescription] = useState(budget.description);
     const [currentAmount, setCurrentAmount] = useState(budget.currentAmount ?? 0);
     const [maxAmount, setMaxAmount] = useState(budget.maxAmount ?? 1);
-    const [targetPeriod, setTargetPeriod] = useState<TargetPeriod>(budget.targetPeriod);
-    const [category, setCategory] = useState<Category>(budget.category ?? Category.FOOD);
-    const TARGET_PERIODS = ["MONTHLY", "QUARTERLY", "YEARLY"] as const;
-    const CATEGORIES = Object.values(Category);
     const { currentUser } = useContext(AuthContext);
+
+    useEffect(() => {
+        setIsEnabled(budget.enabled);
+        if (budget.maxAmount !== undefined) {
+            setMaxAmount(budget.maxAmount);
+        }
+    }, [budget.enabled, budget.maxAmount]);
 
     useEffect(() => {
         async function fetchCategoryTally() {
@@ -47,53 +49,16 @@ export default function BudgetCard({ budget, startDate, endDate, onDeleted }: Bu
     }, [currentUser, budget?.id, startDate, endDate]);
 
     async function handleEnableToggle() {
-        if ((currentUser != null) && budget != null) {
+        if (currentUser != null && budget != null) {
             const nextEnabled = !isEnabled;
             setIsEnabled(nextEnabled);
-            await updateBudget(currentUser.token,
-                {
-                    id: budget.id,
-                    user: budget.user,
-                    description: description,
-                    enabled: nextEnabled,
-                    currentAmount: currentAmount,
-                    maxAmount: maxAmount,
-                    targetPeriod: targetPeriod,
-                    category: category
-                });
-        }
-        else {
+            await updateBudget(currentUser.token, {
+                ...budget,
+                enabled: nextEnabled,
+            });
+        } else {
             console.log("Null values: update was rejected");
         }
-    }
-
-
-    async function handleEdit() {
-        if (isEditing) {
-            if ((currentUser != null) && budget != null) {
-                let updatedDescription = description;
-                if (!updatedDescription.endsWith(' Jet')) {
-                    updatedDescription = updatedDescription + ' Jet';
-                    setDescription(updatedDescription);
-                }
-
-                await updateBudget(currentUser.token,
-                    {
-                        id: budget.id,
-                        user: budget.user,
-                        description: updatedDescription,
-                        enabled: budget.enabled,
-                        currentAmount: currentAmount,
-                        maxAmount: maxAmount,
-                        targetPeriod: targetPeriod,
-                        category: category
-                    });
-            }
-            else {
-                console.log("Null values: update was rejected");
-            }
-        }
-        setIsEditing(!isEditing);
     }
 
     async function handleDelete() {
@@ -120,84 +85,38 @@ export default function BudgetCard({ budget, startDate, endDate, onDeleted }: Bu
         textColor = "text-rose-800";
     } else if (progressPercent >= 75) {
         textColor = "text-yellow-300";
-    }
-    else {
+    } else {
         textColor = "text-emerald-400";
     }
 
     return (
-        <div className={`w-full p-3 border rounded-lg shadow-sm flex flex-col gap-2 transition-colors ${isEnabled
-            ? "bg-sky-600 text-slate-200"
-            : "bg-slate-600 text-sky-400 border-slate-300"
-            }`}>
+        <div className={`w-full p-3 border rounded-lg shadow-sm flex flex-col gap-2 transition-colors ${
+            isEnabled
+                ? "bg-sky-600 text-slate-200"
+                : "bg-slate-600 text-sky-400 border-slate-300"
+        }`}>
             <div className="flex justify-between items-center w-full">
                 <div className="flex flex-col gap-1.5">
-                    <div>
-                        <input
-                            type="text"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            disabled={!isEditing}
-                            className={`font-semibold text-base bg-transparent border-2 rounded px-1 transition-colors ${isEditing ? "border-white bg-sky-700 text-white" : "border-transparent cursor-default"
-                                }`}
-                        />
+                    <div className="font-semibold text-base text-white">
+                        {budget.description || `Budget #${budget.id}`}
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs">
-                        <span className="font-bold">$</span>
-                        <input
-                            type="number"
-                            value={maxAmount}
-                            onChange={(e) => setMaxAmount(Number(e.target.value))}
-                            disabled={!isEditing}
-                            style={{ width: `${Math.max(maxAmount.toString().length + 4, 8)}ch` }}
-                            className={`bg-transparent border-2 rounded px-1 font-bold text-center transition-colors min-w-20 ${isEditing ? "border-white bg-sky-700 text-white" : "border-transparent cursor-default"
-                                }`}
-                        />
-                        <span className="text-sky-200">/</span>
-                        <select
-                            value={targetPeriod}
-                            onChange={(e) => setTargetPeriod(e.target.value as TargetPeriod)}
-                            disabled={!isEditing}
-                            className={`bg-transparent border-2 rounded px-1 text-xs transition-colors ${isEditing ? "border-white bg-sky-700 text-white cursor-pointer" : "border-transparent cursor-default appearance-none"
-                                }`}
-                        >
-                            {Object.values(TARGET_PERIODS).map((period) => (
-                                <option key={String(period)} value={period as string} className="bg-sky-700 text-white">
-                                    {String(period)}
-                                </option>
-                            ))}
-                        </select>
+                    <div className="flex items-center gap-1.5 text-xs text-sky-200">
+                        <span className="font-bold">${maxAmount.toFixed(2)}</span>
+                        <span>/</span>
+                        <span>{budget.targetPeriod}</span>
                     </div>
 
                     <div className="flex items-center gap-1 text-xs">
                         <span className="text-sky-200 font-medium">Category:</span>
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value as unknown as Category)}
-                            disabled={!isEditing}
-                            className={`bg-transparent border-2 rounded px-1 text-xs transition-colors ${isEditing ? "border-white bg-sky-700 text-white cursor-pointer" : "border-transparent cursor-default appearance-none font-semibold text-white"
-                                }`}
-                        >
-                            {CATEGORIES.map((cat) => (
-                                <option key={cat} value={cat} className="bg-sky-700 text-white">
-                                    {cat}
-                                </option>
-                            ))}
-                        </select>
+                        <span className="font-semibold text-white">{budget.category}</span>
                     </div>
                 </div>
 
                 <div className={`flex items-center gap-1 text-2xl font-extrabold mr-6 ${textColor}`}>
-                    <div className={`bg-transparent border-transparent rounded px-1 text-right font-extrabold transition-colors`}>
-                        ${Number(currentAmount).toFixed(2)}
-                    </div>
-                    <div>
-                        /
-                    </div>
-                    <div className={`bg-transparent border-transparent rounded px-1 text-right font-extrabold transition-colors`}>
-                        ${Number(maxAmount).toFixed(2)}
-                    </div>
+                    <div>${Number(currentAmount).toFixed(2)}</div>
+                    <div>/</div>
+                    <div>${Number(maxAmount).toFixed(2)}</div>
                 </div>
             </div>
 
@@ -214,7 +133,7 @@ export default function BudgetCard({ budget, startDate, endDate, onDeleted }: Bu
                 <div className="flex gap-4 items-end">
                     <button
                         onClick={handleEnableToggle}
-                        className="h-14 w-14 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors"
+                        className="h-14 w-14 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors cursor-pointer"
                     >
                         {isEnabled ? "Disable" : "Enable"}
                     </button>
@@ -222,18 +141,15 @@ export default function BudgetCard({ budget, startDate, endDate, onDeleted }: Bu
 
                 <div className="flex items-center gap-2 mr-6">
                     <button
-                        onClick={handleEdit}
-                        className={`px-3 py-1 text-xs font-medium rounded text-white transition-colors h-6.5 ${isEditing
-                            ? "bg-emerald-400 hover:bg-emerald-600"
-                            : "bg-sky-700 hover:bg-sky-800"
-                            }`}
+                        onClick={onEditBudget}
+                        className="px-3 py-1 text-xs font-medium rounded text-white bg-sky-700 hover:bg-sky-800 transition-colors h-6.5 cursor-pointer"
                     >
-                        {isEditing ? "Accept Changes" : "Edit"}
+                        Edit
                     </button>
 
                     <button
                         onClick={handleDelete}
-                        className="px-3 py-1 text-xs font-medium rounded text-white bg-rose-800 hover:bg-rose-700 transition-colors h-6.5"
+                        className="px-3 py-1 text-xs font-medium rounded text-white bg-rose-800 hover:bg-rose-700 transition-colors h-6.5 cursor-pointer"
                     >
                         Delete
                     </button>

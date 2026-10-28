@@ -36,22 +36,31 @@ export async function updateBudget(token: string, changes: BudgetType): Promise<
     }
 }
 
-export async function createBudget(user: User): Promise<void> {
+export async function createBudget(user: User, budgetData?: Partial<BudgetType>): Promise<void> {
     try {
+        const cleanTimestamp = (isoString?: string) => {
+            if (!isoString) return new Date().toISOString().split('.')[0];
+            return isoString.split('.')[0].replace('Z', '');
+        };
+
+        const payload = {
+            user: user, 
+            description: budgetData?.description ?? "New Budget",
+            targetPeriod: budgetData?.targetPeriod ?? "MONTHLY",
+            category: budgetData?.category ?? "FOOD",
+            currentAmount: budgetData?.currentAmount ?? 0,
+            maxAmount: budgetData?.maxAmount ?? 100,
+            enabled: budgetData?.enabled ?? true,
+            startDate: cleanTimestamp(budgetData?.startDate)
+        };
+
         const response = await fetch(`${BASE_URL}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 'Authorization': `Bearer ${user.token}`
             },
-            body: JSON.stringify({
-                user: user,
-                description: "New Jet",
-                targetPeriod: "MONTHLY",
-                currentAmount: 100,
-                maxAmount: 100,
-                enabled: true
-            })
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {

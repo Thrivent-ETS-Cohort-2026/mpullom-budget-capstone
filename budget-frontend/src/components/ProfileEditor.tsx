@@ -86,10 +86,8 @@ export default function ProfileEditor({ onSwitchToLogin }: ProfileEditorProps) {
                     updatePayload.password = passInput.trim();
                 }
 
-                // 1. Wait for backend update to complete (returns void)
                 await updateUser(updatePayload, currentUser.token);
 
-                // 2. Update context using your local updatePayload directly
                 if (updateUserContext) {
                     updateUserContext(updatePayload);
                 } else if (setCurrentUser) {

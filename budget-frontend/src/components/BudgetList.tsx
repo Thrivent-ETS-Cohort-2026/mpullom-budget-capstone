@@ -4,14 +4,17 @@ import { useState, useEffect, useContext, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { BudgetType } from "@/types/DataTypes";
 import BudgetCard from "./BudgetCard";
-import { createBudget, fetchBudgets } from "@/lib/budgetApi";
+import BudgetEditor from "./BudgetEditor";
+import { fetchBudgets } from "@/lib/budgetApi";
 import { AuthContext } from "@/context/AuthContext";
 import BudgetAnalytics from "./BudetAnalytics";
 
 export default function BudgetList() {
-    const router = useRouter();
     const [budgets, setBudgets] = useState<BudgetType[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isCreating, setIsCreating] = useState<boolean>(false);
+    const [editingBudget, setEditingBudget] = useState<BudgetType | null>(null);
+
     const { currentUser } = useContext(AuthContext);
 
     const [startDate, setStartDate] = useState<string>("");
@@ -47,17 +50,20 @@ export default function BudgetList() {
         loadBudgets();
     }, [loadBudgets]);
 
-    async function handleCreateBudget() {
-        if (currentUser != null) {
-            await createBudget(currentUser);
-            await loadBudgets();
-        } else {
-            console.log("No user is signed in");
-        }
+    function handleBudgetCreation() {
+        setIsCreating(true);
+        setEditingBudget(null);
     }
 
-    function handleTransactions() {
-        router.push('/budgeting/transactions');
+    function handleEditorClose() {
+        setIsCreating(false);
+        setEditingBudget(null);
+    }
+
+    function handleEditorSaved() {
+        loadBudgets();
+        setIsCreating(false);
+        setEditingBudget(null);
     }
 
     function handleBudgetDeleted(budgetId: number) {
@@ -71,6 +77,7 @@ export default function BudgetList() {
     const formattedStart = `${startDate}T00:00:00`;
     const formattedEnd = `${endDate}T23:59:59`;
 
+    // Sort budgets alphabetically by description
     const sortedBudgets = [...budgets].sort((a, b) => {
         const descA = (a.description || `Budget #${a.id}`).toLowerCase();
         const descB = (b.description || `Budget #${b.id}`).toLowerCase();
@@ -78,7 +85,16 @@ export default function BudgetList() {
     });
 
     return (
-        <main className="p-4 w-full">
+        <main className="p-4 w-full relative">
+            {/* Render BudgetEditor modal ONLY when explicitly creating or editing */}
+            {(isCreating || editingBudget !== null) && (
+                <BudgetEditor
+                    budget={editingBudget}
+                    onClose={handleEditorClose}
+                    onSaved={handleEditorSaved}
+                />
+            )}
+
             <h1 className="text-2xl font-bold mb-3">Budgeting</h1>
             
             <BudgetAnalytics 
@@ -90,15 +106,9 @@ export default function BudgetList() {
 
             <div className="flex justify-end items-center w-full mb-4">
                 <div className="flex items-center gap-2">
-                    {/* <button
-                        onClick={handleTransactions}
-                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
-                    >
-                        Transactions
-                    </button> */}
                     <button
-                        onClick={handleCreateBudget}
-                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                        onClick={handleBudgetCreation}
+                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow cursor-pointer"
                     >
                         Create Budget
                     </button>
@@ -116,6 +126,7 @@ export default function BudgetList() {
                             startDate={formattedStart}
                             endDate={formattedEnd}
                             onDeleted={() => handleBudgetDeleted(budget.id)}
+                            onEditBudget={() => setEditingBudget(budget)}
                         />
                     ))
                 )}

@@ -36,7 +36,6 @@ export default function TransactionCard({ transaction, onDeleted }: TransactionC
         }
     }
 
-    // Format description for transfers or general cleanup
     let displayDescription = transaction.description || "No description";
     const isTransfer = transaction.transactionType?.toString().includes("TRANSFER");
 
@@ -54,7 +53,6 @@ export default function TransactionCard({ transaction, onDeleted }: TransactionC
         }
     }
 
-    // Append [Recurrent] if recurrence period is greater than 0
     const isRecurrent = (transaction.recurrencePeriod ?? 0) > 0;
     if (isRecurrent && !displayDescription.startsWith("[Recurrent]")) {
         displayDescription = `[Recurrent] ${displayDescription}`;
@@ -70,7 +68,6 @@ export default function TransactionCard({ transaction, onDeleted }: TransactionC
             <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-sky-400">{transaction.transactionType}</span>
-                    {/* Display category badge for all transactions including transfers */}
                     <span className="px-2 py-0.5 bg-sky-900 text-sky-200 text-xs font-medium rounded-full border border-sky-700">
                         {transaction.category || (isTransfer ? "TRANSFER" : "GENERAL")}
                     </span>

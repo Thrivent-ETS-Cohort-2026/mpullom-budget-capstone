@@ -26,7 +26,7 @@ public class BudgetController {
 
     @PostMapping
     public ResponseEntity<Budget> createBudget(
-            @Valid @RequestBody BudgetRequest request,
+            @RequestBody BudgetRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
