@@ -149,6 +149,10 @@ export default function AccountCard({ account, onAccountUpdated }: AccountCardPr
         }
     }
 
+    function handleAccountEdit(){
+        
+    }
+
     const isDepositTyping = depositAmount.length > 0;
     const isWithdrawTyping = withdrawAmount.length > 0;
     const isAccountTransferTyping = accountTransferAmount.length > 0;
@@ -177,6 +181,12 @@ export default function AccountCard({ account, onAccountUpdated }: AccountCardPr
                 <div className="grid grid-cols-3 gap-3 w-full items-end">
 
                     <div className="flex flex-col gap-1">
+                        <button
+                            onClick={handleAccountEdit}
+                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm"
+                        >
+                            Edit
+                        </button> 
                         <input
                             type="number"
                             placeholder="Deposit Amount"
@@ -223,7 +233,6 @@ export default function AccountCard({ account, onAccountUpdated }: AccountCardPr
                         </button>
                     </div>
 
-                    {/* Transfer Section (Target Account Dropdown Above) */}
                     <div className="flex flex-col gap-1 w-full">
                         <label className="text-xs font-medium text-sky-200 truncate">Target Account</label>
                         <select
