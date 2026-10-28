@@ -42,6 +42,10 @@ export default function AccountList() {
         router.push('/banking/transactions');
     }
 
+    function handleAccountCreation() {
+        
+    }
+
     if (loading) {
         return <main className="p-4">Loading accounts...</main>;
     }
@@ -51,6 +55,12 @@ export default function AccountList() {
             <div className="flex justify-between items-center w-full mb-4">
                 <h1 className="text-2xl font-bold">Banking</h1>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleAccountCreation}
+                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                    >
+                        Create Account
+                    </button>
                     <button
                         onClick={handleSummary}
                         className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
