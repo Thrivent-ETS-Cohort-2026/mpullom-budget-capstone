@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useContext, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { BudgetType } from "@/types/DataTypes";
 import BudgetCard from "./BudgetCard";
 import BudgetEditor from "./BudgetEditor";
@@ -77,7 +76,6 @@ export default function BudgetList() {
     const formattedStart = `${startDate}T00:00:00`;
     const formattedEnd = `${endDate}T23:59:59`;
 
-    // Sort budgets alphabetically by description
     const sortedBudgets = [...budgets].sort((a, b) => {
         const descA = (a.description || `Budget #${a.id}`).toLowerCase();
         const descB = (b.description || `Budget #${b.id}`).toLowerCase();
@@ -86,7 +84,6 @@ export default function BudgetList() {
 
     return (
         <main className="p-4 w-full relative">
-            {/* Render BudgetEditor modal ONLY when explicitly creating or editing */}
             {(isCreating || editingBudget !== null) && (
                 <BudgetEditor
                     budget={editingBudget}

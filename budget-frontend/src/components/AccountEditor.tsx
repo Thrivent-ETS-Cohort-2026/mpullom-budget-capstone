@@ -37,7 +37,6 @@ export default function AccountEditor({ account, onClose, onSaved }: AccountEdit
         if (!currentUser) return;
 
         try {
-            // Include 'user' so backend validation and user association succeed
             const accountData: any = {
                 accountType,
                 balance: parseFloat(balance) || 0,
@@ -90,13 +89,11 @@ export default function AccountEditor({ account, onClose, onSaved }: AccountEdit
                         >
                             <option value="CHECKING">CHECKING</option>
                             <option value="SAVINGS">SAVINGS</option>
-                            <option value="CREDIT">CREDIT</option>
-                            <option value="INVESTMENT">INVESTMENT</option>
                         </select>
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium">Initial Balance</label>
+                        <label className="text-xs font-medium">Balance</label>
                         <input
                             type="number"
                             step="0.01"
