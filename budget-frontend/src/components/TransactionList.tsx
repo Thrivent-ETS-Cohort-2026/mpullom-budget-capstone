@@ -30,6 +30,7 @@ export default function TransactionList() {
     const [budgetId, setBudgetId] = useState<number>(0);
     const [accountNumber, setAccountNumber] = useState<number>(0);
     const [transactionType, setTransactionType] = useState<TransactionType>(TransactionType.ACCOUNT_DEPOSIT);
+    const [category, setCategory] = useState<string>("FOOD");
     const [amount, setAmount] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     
@@ -146,6 +147,7 @@ export default function TransactionList() {
 
             const transactionData: any = {
                 transactionType,
+                category,
                 amount: parseFloat(amount) || 0,
                 recurrencePeriod: Number(recurrencePeriod) || 0,
                 description: finalDescription,
@@ -167,6 +169,7 @@ export default function TransactionList() {
             setDescription("");
             setRecurrencePeriod(0);
             setBudgetId(0);
+            setCategory("FOOD");
             setAccountNumber(accounts.length > 0 ? accounts[0].accountNumber : 0);
             setTransactionDate("");
             setTransactionTime("");
@@ -250,6 +253,22 @@ export default function TransactionList() {
                                     <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
                                 </>
                             )}
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium">Category</label>
+                        <select
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className="px-2 py-1 rounded bg-sky-900 border border-sky-600 text-white"
+                        >
+                            <option value="FOOD">FOOD</option>
+                            <option value="GROCERIES">GROCERIES</option>
+                            <option value="GAS">GAS</option>
+                            <option value="WORK">WORK</option>
+                            <option value="BILLS">BILLS</option>
+                            <option value="UNEXPECTED">UNEXPECTED</option>
                         </select>
                     </div>
 
