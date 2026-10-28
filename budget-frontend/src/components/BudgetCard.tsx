@@ -1,17 +1,18 @@
 'use client'
 
-import { useContext, useState } from "react";
-import { BudgetType, TargetPeriod, TransactionType, Category } from "@/types/DataTypes";
-import { updateBudget, deleteBudget } from "@/lib/budgetApi";
-import { createTransaction } from "@/lib/transactionApi";
+import { useContext, useState, useEffect } from "react";
+import { BudgetType, TargetPeriod, Category } from "@/types/DataTypes";
+import { updateBudget, deleteBudget, tallyBudgetCategoryTransactions } from "@/lib/budgetApi";
 import { AuthContext } from "@/context/AuthContext";
 
 interface BudgetCardProps {
     budget: BudgetType;
+    startDate: string;
+    endDate: string;
     onDeleted?: () => void;
 }
 
-export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
+export default function BudgetCard({ budget, startDate, endDate, onDeleted }: BudgetCardProps) {
     if (!budget) return null;
 
     const [isEnabled, setIsEnabled] = useState(budget.enabled);
@@ -21,12 +22,29 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
     const [maxAmount, setMaxAmount] = useState(budget.maxAmount ?? 1);
     const [targetPeriod, setTargetPeriod] = useState<TargetPeriod>(budget.targetPeriod);
     const [category, setCategory] = useState<Category>(budget.category ?? Category.FOOD);
-
-    const [withdrawAmount, setWithdrawAmount] = useState<string>("");
-
     const TARGET_PERIODS = ["MONTHLY", "QUARTERLY", "YEARLY"] as const;
     const CATEGORIES = Object.values(Category);
     const { currentUser } = useContext(AuthContext);
+
+    useEffect(() => {
+        async function fetchCategoryTally() {
+            if (currentUser?.token && budget?.id && startDate && endDate) {
+                try {
+                    const formattedStart = startDate.length === 10 ? `${startDate}T00:00:00` : startDate;
+                    const formattedEnd = endDate.length === 10 ? `${endDate}T23:59:59` : endDate;
+
+                    const tallyResult = await tallyBudgetCategoryTransactions(currentUser.token, budget.id, formattedStart, formattedEnd);
+                    setCurrentAmount(tallyResult.currentAmountTally ?? 0);
+                    if (tallyResult.maxAmountTally > 0) {
+                        setMaxAmount(tallyResult.maxAmountTally);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch tally for budget category:", err);
+                }
+            }
+        }
+        fetchCategoryTally();
+    }, [currentUser, budget?.id, startDate, endDate]);
 
     async function handleEnableToggle() {
         if ((currentUser != null) && budget != null) {
@@ -49,51 +67,6 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
         }
     }
 
-    async function handleWithdraw() {
-        if ((currentUser != null) && budget != null) {
-            const amount = parseFloat(withdrawAmount);
-            if (isNaN(amount) || amount <= 0) {
-                console.log("Invalid withdrawal amount entered");
-                return;
-            }
-
-            try {
-                const transactionData = {
-                    budget: { id: budget.id },
-                    transactionType: TransactionType.BUDGET_WITHDRAWL,
-                    amount: amount,
-                    description: `Withdrawal from ${description || `Budget #${budget.id}`}`,
-                    recurrencePeriod: 0,
-                    category: category
-                };
-
-                await createTransaction(currentUser.token, transactionData);
-
-                const newCurrentAmount = currentAmount - amount;
-
-                await updateBudget(currentUser.token,
-                    {
-                        id: budget.id,
-                        user: budget.user,
-                        description: description,
-                        enabled: budget.enabled,
-                        currentAmount: newCurrentAmount,
-                        maxAmount: maxAmount,
-                        targetPeriod: targetPeriod,
-                        category: category
-                    });
-
-                setCurrentAmount(newCurrentAmount);
-                setWithdrawAmount("");
-            } catch (err) {
-                console.error("Failed to create withdrawal transaction:", err);
-                alert("Failed to process withdrawal transaction.");
-            }
-        }
-        else {
-            console.log("Null values: update was rejected");
-        }
-    }
 
     async function handleEdit() {
         if (isEditing) {
@@ -139,16 +112,17 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
         }
     }
 
-    const percentage = (currentAmount / maxAmount) * 100;
+    const progressPercent = maxAmount > 0 ? Math.min(Math.max((currentAmount / maxAmount) * 100, 0), 100) : 0;
+    const isOverBudget = currentAmount > maxAmount;
 
     let textColor = "text-emerald-400";
-    if (percentage >= 90) {
-        textColor = "text-emerald-400";
-    } else if (percentage >= 75) {
+    if (progressPercent >= 90) {
+        textColor = "text-rose-800";
+    } else if (progressPercent >= 75) {
         textColor = "text-yellow-300";
     }
     else {
-        textColor = "text-rose-800";
+        textColor = "text-emerald-400";
     }
 
     return (
@@ -196,7 +170,6 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                         </select>
                     </div>
 
-                    {/* Category Selection Dropdown */}
                     <div className="flex items-center gap-1 text-xs">
                         <span className="text-sky-200 font-medium">Category:</span>
                         <select
@@ -226,6 +199,15 @@ export default function BudgetCard({ budget, onDeleted }: BudgetCardProps) {
                         ${Number(maxAmount).toFixed(2)}
                     </div>
                 </div>
+            </div>
+
+            <div className="w-full bg-sky-950 rounded-full h-3 overflow-hidden border border-sky-700 my-1">
+                <div
+                    className={`h-full transition-all duration-500 rounded-full ${
+                        isOverBudget ? "bg-rose-500" : "bg-emerald-500"
+                    }`}
+                    style={{ width: `${progressPercent}%` }}
+                />
             </div>
 
             <div className="flex justify-between items-center mt-0.5 w-full">

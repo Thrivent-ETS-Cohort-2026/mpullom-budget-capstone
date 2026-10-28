@@ -5,23 +5,19 @@ import { AuthContext } from "@/context/AuthContext";
 import { tallyBudgets } from "@/lib/budgetApi";
 import TransactionFilterFetch from "./TransactionFilter";
 
-export default function BudgetAnalytics() {
+interface BudgetAnalyticsProps {
+    startDate: string;
+    setStartDate: (date: string) => void;
+    endDate: string;
+    setEndDate: (date: string) => void;
+}
+
+export default function BudgetAnalytics({ startDate, setStartDate, endDate, setEndDate }: BudgetAnalyticsProps) {
     const [currentTally, setCurrentTally] = useState<number>(0);
     const [maxTally, setMaxTally] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const { currentUser } = useContext(AuthContext);
-
-    const getFormattedDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const today = new Date();
-    const defaultFrom = getFormattedDate(new Date(today.getFullYear(), today.getMonth(), 1));
-    const defaultTo = getFormattedDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
     async function handleSearch(fromDate: string, toDate: string) {
         if (!currentUser?.token) {
@@ -33,6 +29,9 @@ export default function BudgetAnalytics() {
             return;
         }
 
+        setStartDate(fromDate);
+        setEndDate(toDate);
+
         try {
             setLoading(true);
             setError(null);
@@ -43,7 +42,7 @@ export default function BudgetAnalytics() {
             const tallyResult = await tallyBudgets(currentUser.token, startDateTime, endDateTime);
 
             setCurrentTally(tallyResult.currentAmountTally ?? 0);
-            setMaxTally(tallyResult.currentAmountTally > 0 ? tallyResult.maxAmountTally : 1);
+            setMaxTally((tallyResult.maxAmountTally ?? 0) > 0 ? tallyResult.maxAmountTally : 1);
 
         } catch (err) {
             console.error("Failed to fetch budget analytics:", err);
@@ -54,10 +53,10 @@ export default function BudgetAnalytics() {
     }
 
     useEffect(() => {
-        if (currentUser?.token) {
-            handleSearch(defaultFrom, defaultTo);
+        if (currentUser?.token && startDate && endDate) {
+            handleSearch(startDate, endDate);
         }
-    }, [currentUser]);
+    }, [currentUser, startDate, endDate]);
 
     const progressPercent = maxTally > 0 ? Math.min(Math.max((currentTally / maxTally) * 100, 0), 100) : 0;
     const isOverBudget = currentTally > maxTally;

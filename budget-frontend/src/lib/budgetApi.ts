@@ -1,4 +1,4 @@
-import { BudgetRequest, BudgetTallyResponse, BudgetType, User } from "@/types/DataTypes";
+import { BudgetTallyResponse, BudgetType, User } from "@/types/DataTypes";
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/budgets`;
 
 export async function fetchBudgets(token: string): Promise<BudgetType[]> {
@@ -103,5 +103,32 @@ export async function tallyBudgets(token: string, startDate: string, endDate: st
         return response.json();
     } catch (error: any) {
         throw new Error(error.message || "An unexpected error occurred during budget tallying.");
+    }
+}
+
+export async function tallyBudgetCategoryTransactions(
+    token: string, 
+    budgetId: number, 
+    startDate: string, 
+    endDate: string
+): Promise<BudgetTallyResponse> {
+    try {
+        const response = await fetch(`${BASE_URL}/${budgetId}/tally`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ startDate, endDate })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to tally category budget amounts.");
+        }
+
+        return response.json();
+    } catch (error: any) {
+        throw new Error(error.message || "An unexpected error occurred during category budget tallying.");
     }
 }

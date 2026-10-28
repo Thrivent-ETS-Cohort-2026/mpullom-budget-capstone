@@ -14,6 +14,19 @@ export default function BudgetList() {
     const [loading, setLoading] = useState<boolean>(true);
     const { currentUser } = useContext(AuthContext);
 
+    const [startDate, setStartDate] = useState<string>("");
+    const [endDate, setEndDate] = useState<string>("");
+
+    useEffect(() => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+        setStartDate(`${year}-${month}-01`);
+        setEndDate(`${year}-${month}-${String(lastDay).padStart(2, '0')}`);
+    }, []);
+
     const loadBudgets = useCallback(async () => {
         if (currentUser != null) {
             try {
@@ -51,15 +64,23 @@ export default function BudgetList() {
         setBudgets(prevBudgets => prevBudgets.filter(b => b.id !== budgetId));
     }
 
-    if (loading) {
+    if (loading || !startDate || !endDate) {
         return <main className="p-4">Loading budgets...</main>;
     }
+
+    const formattedStart = `${startDate}T00:00:00`;
+    const formattedEnd = `${endDate}T23:59:59`;
 
     return (
         <main className="p-4 w-full">
             <h1 className="text-2xl font-bold mb-3">Budgeting</h1>
             
-            <BudgetAnalytics />
+            <BudgetAnalytics 
+                startDate={startDate} 
+                setStartDate={setStartDate} 
+                endDate={endDate} 
+                setEndDate={setEndDate} 
+            />
 
             <div className="flex justify-end items-center w-full mb-4">
                 <div className="flex items-center gap-2">
@@ -86,6 +107,8 @@ export default function BudgetList() {
                         <BudgetCard
                             key={budget.id}
                             budget={budget}
+                            startDate={formattedStart}
+                            endDate={formattedEnd}
                             onDeleted={() => handleBudgetDeleted(budget.id)}
                         />
                     ))

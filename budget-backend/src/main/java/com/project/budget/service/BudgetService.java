@@ -180,7 +180,7 @@ public class BudgetService {
 
         Category budgetCategory = budget.getCategory();
 
-        List<Transaction> allFilteredTransactions = transactionService.filterTransactions(token, null, startDate, endDate);
+        List<Transaction> allFilteredTransactions = transactionService.filterTransactions(token, TransactionType.ACCOUNT_WITHDRAWL, startDate, endDate);
         
         List<Transaction> categoryTransactions = allFilteredTransactions.stream()
                 .filter(tx -> tx.getCategory() != null && tx.getCategory().equals(budgetCategory))
