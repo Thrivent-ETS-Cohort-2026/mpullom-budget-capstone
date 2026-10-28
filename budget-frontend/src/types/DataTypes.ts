@@ -34,7 +34,8 @@ export interface Transfer {
   amount: number;
   receiver_account_id: number;
   description: string;
-  timestamp?: string
+  timestamp?: string;
+  category: Category;
 }
 
 export interface Transaction {
@@ -45,6 +46,7 @@ export interface Transaction {
   timestamp?: string
   recurrencePeriod: number;
   description: string;
+  category: Category;
 }
 
 export enum TransferType {

@@ -1,6 +1,7 @@
 package com.project.budget.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.project.budget.model.Category;
 import com.project.budget.model.TargetPeriod;
 import com.project.budget.model.User;
 
@@ -21,7 +22,9 @@ public record BudgetRequest(
 
         @NotNull(message = "Enabled status is required") Boolean enabled,
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime startDate) {
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime startDate,
+
+        @NotNull(message = "Category type is required") Category category) {
 
     public BudgetRequest {
         if (startDate == null) {

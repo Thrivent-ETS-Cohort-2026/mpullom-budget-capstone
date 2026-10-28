@@ -31,10 +31,8 @@ public class Budget {
     @Column(name = "target_period", nullable = false)
     private TargetPeriod targetPeriod;
 
-    //Derive based on transactions
-    //=> and category table
-    @Column(name = "current_amount", nullable = false)
-    private Double currentAmount;
+    // Derive based on transactions
+    // => and category table
 
     @Column(name = "max_amount", nullable = false)
     private Double maxAmount;
@@ -45,10 +43,15 @@ public class Budget {
     @Column(name = "start_date")
     private LocalDateTime startDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private Category category;
+
     public Budget() {
     }
 
-    public Budget(User user, String description, TargetPeriod targetPeriod, Double currentAmount, Double maxAmount, Boolean enabled, LocalDateTime startDate) {
+    public Budget(User user, String description, TargetPeriod targetPeriod, Double currentAmount, Double maxAmount,
+            Boolean enabled, LocalDateTime startDate, Category category) {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null.");
         }
@@ -62,10 +65,10 @@ public class Budget {
         this.user = user;
         this.description = description;
         this.targetPeriod = targetPeriod;
-        this.currentAmount = currentAmount;
         this.maxAmount = maxAmount;
         this.enabled = enabled;
         this.startDate = (startDate != null) ? startDate : LocalDateTime.now();
+        this.category = category;
     }
 
     public Long getId() {
@@ -100,14 +103,6 @@ public class Budget {
         this.targetPeriod = targetPeriod;
     }
 
-    public Double getCurrentAmount() {
-        return currentAmount;
-    }
-
-    public void setCurrentAmount(Double currentAmount) {
-        this.currentAmount = currentAmount;
-    }
-
     public Double getMaxAmount() {
         return maxAmount;
     }
@@ -130,5 +125,13 @@ public class Budget {
 
     public void setStartDate(LocalDateTime startDate) {
         this.startDate = startDate;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category newCategory) {
+        this.category = newCategory;
     }
 }

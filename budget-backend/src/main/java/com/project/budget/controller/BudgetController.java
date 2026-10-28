@@ -84,21 +84,6 @@ public class BudgetController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/refresh")
-    public ResponseEntity<Budget> refreshBudget(
-            @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String authHeader) {
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        String token = authHeader.substring(7);
-
-        Budget refreshedBudget = budgetService.refreshBudget(token, id);
-        return ResponseEntity.ok(refreshedBudget);
-    }
-
     @PostMapping("/tally")
     public ResponseEntity<BudgetTallyResponse> tallyBudgetAmounts(
             @Valid @RequestBody BudgetTallyRequest request,

@@ -6,5 +6,6 @@ public enum Category {
     GAS,
     WORK,
     BILLS,
+    UNEXPECTED,
     OTHER
 }

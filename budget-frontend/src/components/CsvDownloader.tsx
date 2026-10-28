@@ -14,13 +14,14 @@ export default function CsvDownloader({ transactions }: CsvDownloaderProps) {
             return;
         }
 
-        const headers = ["Transaction ID", "Type", "Amount", "Description", "Timestamp"];
+        const headers = ["Transaction ID", "Type", "Amount", "Description", "Timestamp", "Category"];
         const rows = transactions.map(t => [
             t.transactionId ?? "",
             t.transactionType ?? "",
             t.amount ?? 0,
             `"${(t.description || "").replace(/"/g, '""')}"`,
-            t.timestamp ?? ""
+            t.timestamp ?? "",
+            t.category ?? ""
         ]);
 
         const csvContent = [

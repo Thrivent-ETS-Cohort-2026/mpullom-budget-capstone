@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.project.budget.dto.AccountTransferRequest;
-import com.project.budget.dto.BudgetTransferRequest;
 import com.project.budget.dto.TransactionRequest;
 import com.project.budget.model.Account;
 import com.project.budget.model.Transaction;
@@ -29,7 +28,6 @@ public class TransactionService {
 
     private final TransactionRepository transactions;
     private final AccountRepository accounts;
-    private final BudgetService budgetService;
     private final UserService userService;
     private final AccountService accountService;
 
@@ -41,7 +39,6 @@ public class TransactionService {
             AccountService accountService) {
         this.transactions = transactions;
         this.accounts = accounts;
-        this.budgetService = budgetService;
         this.userService = userService;
         this.accountService = accountService;
     }
@@ -125,7 +122,8 @@ public class TransactionService {
                                 baseTx.getAmount(),
                                 baseTx.getRecurrencePeriod(),
                                 baseTx.getDescription() + " (Projected)",
-                                nextOccurrence);
+                                nextOccurrence,
+                            baseTx.getCategory());
                         resultList.add(projectedTx);
                     }
                 }
@@ -263,7 +261,8 @@ public class TransactionService {
                 request.amount(),
                 request.recurrencePeriod(),
                 request.description(),
-                (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now());
+                (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now(),
+            request.category());
 
         return transactions.save(transaction);
     }
@@ -299,7 +298,8 @@ public class TransactionService {
                 request.amount(),
                 0L,
                 baseDesc + " (Withdrawal)",
-                timestamp);
+                timestamp,
+            request.category());
         Transaction sourceTx = createTransaction(token, withdrawRequest);
 
         TransactionRequest depositRequest = new TransactionRequest(
@@ -308,7 +308,8 @@ public class TransactionService {
                 request.amount(),
                 0L,
                 baseDesc + " (Deposit)",
-                timestamp);
+                timestamp,
+            request.category());
         Transaction targetTx = createTransaction(token, depositRequest);
 
         List<Transaction> savedTransactions = new ArrayList<>();
@@ -316,47 +317,6 @@ public class TransactionService {
         savedTransactions.add(targetTx);
 
         return savedTransactions;
-    }
-
-    @Transactional
-    public void budgetTransfer(String token, BudgetTransferRequest request) {
-        User authenticatedUser = userService.getUserByToken(token);
-        if (authenticatedUser == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token.");
-        }
-
-        if (request == null) {
-            throw new IllegalArgumentException("Budget transfer request cannot be null.");
-        }
-
-        if (request.amount() == null || request.amount() <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero.");
-        }
-
-        if (request.sourceAccount() == null || request.sourceAccount().getAccountNumber() == null ||
-                request.targetBudget() == null || request.targetBudget().getId() == null) {
-            throw new IllegalArgumentException("Source account and target budget must be provided.");
-        }
-
-        LocalDateTime timestamp = (request.timestamp() != null) ? request.timestamp() : LocalDateTime.now();
-        String description = (request.description() != null && !request.description().isBlank())
-                ? request.description()
-                : "Transfer from Account #" + request.sourceAccount().getAccountNumber() + " to Budget #"
-                        + request.targetBudget().getId();
-
-        TransactionRequest withdrawRequest = new TransactionRequest(
-                request.sourceAccount(),
-                TransactionType.ACCOUNT_WITHDRAWL,
-                request.amount(),
-                0L,
-                description + " (Withdrawal)",
-                timestamp);
-
-        createTransaction(token, withdrawRequest);
-
-        Double currentAmount = request.targetBudget().getCurrentAmount();
-        budgetService.updateBudgetCurrentAmount(token, request.targetBudget().getId(),
-                currentAmount + request.amount());
     }
 
     @Scheduled(cron = "0 0 0 * * ?")
@@ -385,7 +345,8 @@ public class TransactionService {
                         baseTx.getAmount(),
                         baseTx.getRecurrencePeriod(),
                         baseTx.getDescription(),
-                        newTimestamp);
+                        newTimestamp,
+                    baseTx.getCategory());
 
                 String userToken = baseTx.getAccount().getUser().getToken();
                 createTransaction(userToken, request);

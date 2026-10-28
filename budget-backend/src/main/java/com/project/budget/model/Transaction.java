@@ -42,11 +42,15 @@ public class Transaction {
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private Category category;
+
     public Transaction() {
     }
 
     public Transaction(Account account, TransactionType transactionType, Double amount,
-            Long recurrencePeriod, String description, LocalDateTime timestamp) {
+            Long recurrencePeriod, String description, LocalDateTime timestamp, Category category) {
         if (account == null) {
             throw new IllegalArgumentException("Account cannot be null.");
         }
@@ -54,7 +58,8 @@ public class Transaction {
             throw new IllegalArgumentException("Amount must be non-null and positive. Provided: " + amount);
         }
         if (recurrencePeriod == null || recurrencePeriod < 0) {
-            throw new IllegalArgumentException("Reccurence period must be non-null and positive. Provided: " + recurrencePeriod);
+            throw new IllegalArgumentException(
+                    "Reccurence period must be non-null and positive. Provided: " + recurrencePeriod);
         }
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("Description cannot be null or empty.");
@@ -66,6 +71,7 @@ public class Transaction {
         this.recurrencePeriod = recurrencePeriod;
         this.description = description;
         this.timestamp = (timestamp != null) ? timestamp : LocalDateTime.now();
+        this.category = category;
     }
 
     public Long getTransactionId() {
@@ -122,5 +128,13 @@ public class Transaction {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category newCategory) {
+        this.category = newCategory;
     }
 }

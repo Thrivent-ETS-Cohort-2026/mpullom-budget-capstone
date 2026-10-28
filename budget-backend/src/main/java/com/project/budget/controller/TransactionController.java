@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.budget.dto.AccountTransferRequest;
-import com.project.budget.dto.BudgetTransferRequest;
 import com.project.budget.dto.TransactionRequest;
 import com.project.budget.model.Transaction;
 import com.project.budget.model.TransactionType;
@@ -103,14 +102,6 @@ public class TransactionController {
             @RequestHeader("Authorization") String token,
             @RequestBody AccountTransferRequest request) {
         transactionService.accountTransfer(token, request);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/transfer/budget")
-    public ResponseEntity<Void> budgetTransfer(
-            @RequestHeader("Authorization") String token,
-            @RequestBody BudgetTransferRequest request) {
-        transactionService.budgetTransfer(token, request);
         return ResponseEntity.ok().build();
     }
 }

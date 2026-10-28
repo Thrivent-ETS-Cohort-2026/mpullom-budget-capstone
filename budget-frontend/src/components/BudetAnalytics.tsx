@@ -1,13 +1,15 @@
 'use client'
 
 import { useContext, useState, useEffect } from "react";
-import { tallyBudgetAmounts } from "@/lib/budgetApi"; 
 import { AuthContext } from "@/context/AuthContext";
-import { BudgetTallyResponse } from "@/types/DataTypes";
+import { BudgetType, Transaction } from "@/types/DataTypes";
+import { fetchBudgets } from "@/lib/budgetApi";
 import TransactionFilterFetch from "./TransactionFilter";
+import { getTransactions } from "@/lib/transactionApi";
 
 export default function BudgetAnalytics() {
-    const [tallyData, setTallyData] = useState<BudgetTallyResponse | null>(null);
+    const [currentTally, setCurrentTally] = useState<number>(0);
+    const [maxTally, setMaxTally] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const { currentUser } = useContext(AuthContext);
@@ -24,7 +26,7 @@ export default function BudgetAnalytics() {
     const defaultTo = getFormattedDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
     async function handleSearch(fromDate: string, toDate: string) {
-        if (!currentUser) {
+        if (!currentUser?.token) {
             return;
         }
 
@@ -40,15 +42,21 @@ export default function BudgetAnalytics() {
             const startDateTime = `${fromDate}T00:00:00`;
             const endDateTime = `${toDate}T23:59:59`;
 
-            const result = await tallyBudgetAmounts(
-                currentUser.token, 
-                startDateTime, 
-                endDateTime
-            );
+            const budgetsData: BudgetType[] = await fetchBudgets(currentUser.token).catch(() => []);
+            const totalMax = (budgetsData || []).reduce((acc, b) => acc + (b.maxAmount ?? 0), 0);
+            setMaxTally(totalMax > 0 ? totalMax : 1);
 
-            setTallyData(result);
+            const transactionsData: Transaction[] = await getTransactions(
+                currentUser.token,
+                startDateTime,
+                endDateTime
+            ).catch(() => []);
+
+            const totalCurrent = (transactionsData || []).reduce((acc, t) => acc + (t.amount ?? 0), 0);
+            setCurrentTally(totalCurrent);
+
         } catch (err) {
-            console.error("Failed to fetch budget tally:", err);
+            console.error("Failed to fetch budget analytics:", err);
             setError("Failed to retrieve budget analytics.");
         } finally {
             setLoading(false);
@@ -61,8 +69,6 @@ export default function BudgetAnalytics() {
         }
     }, [currentUser]);
 
-    const currentTally = tallyData?.currentAmountTally ?? 0;
-    const maxTally = tallyData?.maxAmountTally ?? 1;
     const percentage = maxTally > 0 ? (currentTally / maxTally) * 100 : 0;
 
     let textColor = "text-emerald-400";
