@@ -49,7 +49,7 @@ export default function AccountList() {
 
     function handleAccountCreation() {
         setIsCreating(true);
-        setEditingAccount(null); // Ensure edit mode is closed when creating
+        setEditingAccount(null); 
     }
 
     function handleEditorClose() {
@@ -67,9 +67,10 @@ export default function AccountList() {
         return <main className="p-4">Loading accounts...</main>;
     }
 
+    const sortedAccounts = [...accounts].sort((a, b) => a.accountNumber - b.accountNumber);
+
     return (
         <main className="p-4 w-full">
-            {/* Render AccountEditor for either Creating or Editing with background blur */}
             {(isCreating || editingAccount !== null) && (
                 <AccountEditor
                     account={editingAccount}
@@ -97,10 +98,10 @@ export default function AccountList() {
             </div>
 
             <div className="w-full flex flex-col gap-3 items-stretch">
-                {accounts.length === 0 ? (
+                {sortedAccounts.length === 0 ? (
                     <p className="text-slate-600 font-medium">No accounts found.</p>
                 ) : (
-                    accounts.map((account) => (
+                    sortedAccounts.map((account) => (
                         <AccountCard
                             key={account.accountNumber}
                             account={account}
