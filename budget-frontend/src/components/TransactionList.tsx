@@ -112,7 +112,7 @@ export default function TransactionList() {
             }
         }
 
-        if (transactionType !== TransactionType.BUDGET_WITHDRAWL && (!accountNumber || accountNumber === 0)) {
+        if (transactionType !== TransactionType.BUDGET_WITHDRAWAL && (!accountNumber || accountNumber === 0)) {
             setNotificationMessage("Please select a valid account.");
             return;
         }
@@ -152,7 +152,7 @@ export default function TransactionList() {
                 transactionData.budget = { id: Number(budgetId) };
             }
 
-            if (transactionType !== TransactionType.BUDGET_WITHDRAWL) {
+            if (transactionType !== TransactionType.BUDGET_WITHDRAWAL) {
                 transactionData.account = { accountNumber: Number(accountNumber) };
             }
 
@@ -231,20 +231,20 @@ export default function TransactionList() {
                             {isBudgetingRoute ? (
                                 <>
                                     <option value={TransactionType.BUDGET_DEPOSIT}>BUDGET_DEPOSIT</option>
-                                    <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
+                                    <option value={TransactionType.BUDGET_WITHDRAWAL}>BUDGET_WITHDRAWAL</option>
                                 </>
                             ) : isBankingRoute ? (
                                 <>
                                     <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
-                                    <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
+                                    <option value={TransactionType.ACCOUNT_WITHDRAWAL}>ACCOUNT_WITHDRAWAL</option>
                                     <option value={TransactionType.BUDGET_DEPOSIT}>BUDGET_DEPOSIT</option>
                                 </>
                             ) : (
                                 <>
                                     <option value={TransactionType.ACCOUNT_DEPOSIT}>ACCOUNT_DEPOSIT</option>
-                                    <option value={TransactionType.ACCOUNT_WITHDRAWL}>ACCOUNT_WITHDRAWL</option>
+                                    <option value={TransactionType.ACCOUNT_WITHDRAWAL}>ACCOUNT_WITHDRAWAL</option>
                                     <option value={TransactionType.BUDGET_DEPOSIT}>BUDGET_DEPOSIT</option>
-                                    <option value={TransactionType.BUDGET_WITHDRAWL}>BUDGET_WITHDRAWL</option>
+                                    <option value={TransactionType.BUDGET_WITHDRAWAL}>BUDGET_WITHDRAWAL</option>
                                 </>
                             )}
                         </select>
@@ -266,7 +266,7 @@ export default function TransactionList() {
                         </select>
                     </div>
 
-                    {transactionType !== TransactionType.BUDGET_WITHDRAWL && (
+                    {transactionType !== TransactionType.BUDGET_WITHDRAWAL && (
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-medium">Account</label>
                             <select

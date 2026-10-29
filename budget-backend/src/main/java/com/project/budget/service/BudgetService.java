@@ -137,7 +137,6 @@ public class BudgetService {
 
         List<Budget> userBudgets = budgets.findByUser(user);
         
-        // Collect categories of only enabled budgets
         List<Category> enabledCategories = userBudgets.stream()
                 .filter(b -> b.getEnabled() != null && b.getEnabled())
                 .map(Budget::getCategory)
@@ -145,7 +144,7 @@ public class BudgetService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        List<Transaction> filteredTransactions = transactionService.filterTransactions(token, TransactionType.ACCOUNT_WITHDRAWL, startDate, endDate);
+        List<Transaction> filteredTransactions = transactionService.filterTransactions(token, TransactionType.ACCOUNT_WITHDRAWAL, startDate, endDate);
 
         double currentTally = 0.0;
         for (Transaction tx : filteredTransactions) {
@@ -195,7 +194,7 @@ public class BudgetService {
 
         Category budgetCategory = budget.getCategory();
 
-        List<Transaction> allFilteredTransactions = transactionService.filterTransactions(token, TransactionType.ACCOUNT_WITHDRAWL, startDate, endDate);
+        List<Transaction> allFilteredTransactions = transactionService.filterTransactions(token, TransactionType.ACCOUNT_WITHDRAWAL, startDate, endDate);
         
         List<Transaction> categoryTransactions = allFilteredTransactions.stream()
                 .filter(tx -> tx.getCategory() != null && tx.getCategory().equals(budgetCategory))

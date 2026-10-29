@@ -46,7 +46,7 @@ export default function AccountCard({ account, allAccounts, onAccountUpdated, on
             }
 
             try {
-                const transactionType = isDeposit ? TransactionType.ACCOUNT_DEPOSIT : TransactionType.ACCOUNT_WITHDRAWL;
+                const transactionType = isDeposit ? TransactionType.ACCOUNT_DEPOSIT : TransactionType.ACCOUNT_WITHDRAWAL;
                 const transactionData = {
                     account: account,
                     transactionType: transactionType,

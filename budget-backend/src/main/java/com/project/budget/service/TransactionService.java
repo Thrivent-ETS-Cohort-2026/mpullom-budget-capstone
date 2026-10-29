@@ -169,7 +169,7 @@ public class TransactionService {
                 case ACCOUNT_DEPOSIT:
                     updatedBalance -= amount;
                     break;
-                case ACCOUNT_WITHDRAWL:
+                case ACCOUNT_WITHDRAWAL:
                     break;
                 default:
                     break;
@@ -200,7 +200,7 @@ public class TransactionService {
         TransactionType type = request.transactionType();
 
         switch (type) {
-            case ACCOUNT_WITHDRAWL:
+            case ACCOUNT_WITHDRAWAL:
                 if (request.account() == null || request.account().getAccountNumber() == null) {
                     throw new IllegalArgumentException("Account must be provided for withdrawals.");
                 }
@@ -238,7 +238,7 @@ public class TransactionService {
                 }
                 break;
 
-            case BUDGET_WITHDRAWL:
+            case BUDGET_WITHDRAWAL:
                 List<Account> userAccounts = accountService.getAccountsByToken(token);
                 targetAccount = userAccounts.stream()
                         .filter(acc -> "CHECKING".equalsIgnoreCase(acc.getAccountType().toString())
@@ -294,7 +294,7 @@ public class TransactionService {
 
         TransactionRequest withdrawRequest = new TransactionRequest(
                 request.sourceAccount(),
-                TransactionType.ACCOUNT_WITHDRAWL,
+                TransactionType.ACCOUNT_WITHDRAWAL,
                 request.amount(),
                 0L,
                 baseDesc + " (Withdrawal)",
