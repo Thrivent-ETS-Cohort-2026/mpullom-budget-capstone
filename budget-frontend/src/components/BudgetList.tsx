@@ -33,7 +33,7 @@ export default function BudgetList() {
         if (currentUser != null) {
             try {
                 const data = await fetchBudgets(currentUser.token);
-                setBudgets(data);
+                setBudgets([...data]);
             } catch (error) {
                 console.error("Failed to fetch budgets:", error);
             } finally {
@@ -95,6 +95,7 @@ export default function BudgetList() {
             <h1 className="text-2xl font-bold mb-3">Budgeting</h1>
             
             <BudgetAnalytics 
+                key={JSON.stringify(budgets)} 
                 startDate={startDate} 
                 setStartDate={setStartDate} 
                 endDate={endDate} 
@@ -124,6 +125,7 @@ export default function BudgetList() {
                             endDate={formattedEnd}
                             onDeleted={() => handleBudgetDeleted(budget.id)}
                             onEditBudget={() => setEditingBudget(budget)}
+                            onBudgetUpdated={loadBudgets}
                         />
                     ))
                 )}

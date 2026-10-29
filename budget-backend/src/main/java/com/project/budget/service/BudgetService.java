@@ -119,7 +119,7 @@ public class BudgetService {
         return budgets.save(budget);
     }
 
-@Transactional
+    @Transactional
     public void deleteBudget(String token, Long budgetId) {
         Budget budget = budgets.findById(budgetId)
                 .orElseThrow(
@@ -135,16 +135,31 @@ public class BudgetService {
             throw new IllegalArgumentException("User cannot be null");
         }
 
+        List<Budget> userBudgets = budgets.findByUser(user);
+        
+        // Collect categories of only enabled budgets
+        List<Category> enabledCategories = userBudgets.stream()
+                .filter(b -> b.getEnabled() != null && b.getEnabled())
+                .map(Budget::getCategory)
+                .filter(c -> c != null)
+                .distinct()
+                .collect(Collectors.toList());
+
         List<Transaction> filteredTransactions = transactionService.filterTransactions(token, TransactionType.ACCOUNT_WITHDRAWL, startDate, endDate);
 
         double currentTally = 0.0;
         for (Transaction tx : filteredTransactions) {
             if (tx.getAmount() != null) {
-                currentTally += tx.getAmount();
+                String desc = tx.getDescription();
+                boolean isTransfer = desc != null && desc.toLowerCase().contains("transfer");
+                boolean matchesEnabledCategory = tx.getCategory() != null && enabledCategories.contains(tx.getCategory());
+
+                if (!isTransfer && matchesEnabledCategory) {
+                    currentTally += tx.getAmount();
+                }
             }
         }
 
-        List<Budget> userBudgets = budgets.findByUser(user);
         double maxTally = 0.0;
         for (Budget budget : userBudgets) {
             if (!budget.getEnabled()) {
@@ -184,6 +199,7 @@ public class BudgetService {
         
         List<Transaction> categoryTransactions = allFilteredTransactions.stream()
                 .filter(tx -> tx.getCategory() != null && tx.getCategory().equals(budgetCategory))
+                .filter(tx -> tx.getDescription() == null || !tx.getDescription().toLowerCase().contains("transfer"))
                 .collect(Collectors.toList());
 
         double currentTally = 0.0;
@@ -197,7 +213,6 @@ public class BudgetService {
 
         return new BudgetTallyResponse(currentTally, maxTally);
     }
-
 
     private double calculatePeriodAdjustedMax(Budget budget, LocalDateTime startDate, LocalDateTime endDate) {
         if (budget.getMaxAmount() == null) {

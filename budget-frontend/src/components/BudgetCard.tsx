@@ -11,9 +11,10 @@ interface BudgetCardProps {
     endDate: string;
     onDeleted?: () => void;
     onEditBudget?: () => void;
+    onBudgetUpdated?: () => void; 
 }
 
-export default function BudgetCard({ budget, startDate, endDate, onDeleted, onEditBudget }: BudgetCardProps) {
+export default function BudgetCard({ budget, startDate, endDate, onDeleted, onEditBudget, onBudgetUpdated }: BudgetCardProps) {
     if (!budget) return null;
 
     const [isEnabled, setIsEnabled] = useState(budget.enabled);
@@ -56,6 +57,7 @@ export default function BudgetCard({ budget, startDate, endDate, onDeleted, onEd
                 ...budget,
                 enabled: nextEnabled,
             });
+            onBudgetUpdated?.(); 
         } else {
             console.log("Null values: update was rejected");
         }

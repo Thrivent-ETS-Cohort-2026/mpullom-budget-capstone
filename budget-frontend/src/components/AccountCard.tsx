@@ -3,18 +3,19 @@
 import { useContext, useState, useEffect } from "react";
 import { Account, Category, TransactionType } from "@/types/DataTypes";
 import { AuthContext } from "@/context/AuthContext";
-import { updateAccountBalance, fetchAccounts } from "@/lib/accountApi";
+import { updateAccountBalance } from "@/lib/accountApi";
 import { createTransaction } from "@/lib/transactionApi";
 import Notification from "@/components/Notification";
 import { createAccountTransfer } from "@/lib/transferApi";
 
 interface AccountCardProps {
     account: Account;
+    allAccounts: Account[];
     onAccountUpdated?: () => void;
     onEditAccount?: () => void;
 }
 
-export default function AccountCard({ account, onAccountUpdated, onEditAccount }: AccountCardProps) {
+export default function AccountCard({ account, allAccounts, onAccountUpdated, onEditAccount }: AccountCardProps) {
     if (!account) return null;
 
     const [currentBalance, setCurrentBalance] = useState(account.balance ?? 0);
@@ -27,32 +28,12 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
     const [selectedTargetAccount, setSelectedTargetAccount] = useState<string>("");
     const [notificationMessage, setNotificationMessage] = useState<string>("");
 
-    const [allAccounts, setAllAccounts] = useState<Account[]>([]);
-
     const CATEGORIES = Object.values(Category);
     const { currentUser } = useContext(AuthContext);
 
     useEffect(() => {
         setCurrentBalance(account.balance ?? 0);
     }, [account.balance]);
-
-    useEffect(() => {
-        async function loadTransferTargets() {
-            if (currentUser?.token != null) {
-                try {
-                    const accountsData = await fetchAccounts(currentUser.token).catch(err => {
-                        console.error("Failed to fetch accounts for transfer targets:", err);
-                        return [];
-                    });
-
-                    setAllAccounts((accountsData || []).filter(acc => acc.accountNumber !== account.accountNumber));
-                } catch (err) {
-                    console.error("Failed to load transfer targets:", err);
-                }
-            }
-        }
-        loadTransferTargets();
-    }, [currentUser?.token, account.accountNumber]);
 
     async function handleBalanceChange(isDeposit: boolean) {
         if (currentUser != null && account != null) {
@@ -97,8 +78,6 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                 console.error(`Failed to process ${isDeposit ? "deposit" : "withdrawal"} transaction:`, err);
                 setNotificationMessage(`Failed to process ${isDeposit ? "deposit" : "withdrawal"}. Check balance and account status.`);
             }
-        } else {
-            console.log("Null values: update was rejected");
         }
     }
 
@@ -145,18 +124,14 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                 console.error("Failed to process account-to-account transfer:", err);
                 setNotificationMessage("Failed to process account-to-account transfer.");
             }
-        } else {
-            console.log("Null values: update was rejected");
         }
-    }
-
-    function handleAccountEdit() {
-        onEditAccount?.(); 
     }
 
     const isDepositTyping = depositAmount.length > 0;
     const isWithdrawTyping = withdrawAmount.length > 0;
     const isAccountTransferTyping = accountTransferAmount.length > 0;
+
+    const targetAccountOptions = allAccounts.filter(acc => acc && acc.accountNumber !== account.accountNumber);
 
     return (
         <div className="w-full p-3 border rounded-lg shadow-sm flex flex-col gap-3 transition-colors bg-sky-600 text-slate-200 relative">
@@ -177,8 +152,8 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                 </div>
 
                 <button
-                    onClick={handleAccountEdit}
-                    className="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors shadow-sm"
+                    onClick={() => onEditAccount?.()}
+                    className="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors shadow-sm cursor-pointer"
                 >
                     Edit
                 </button> 
@@ -198,7 +173,7 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                         />
                         <button
                             onClick={() => handleBalanceChange(true)}
-                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm"
+                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm cursor-pointer"
                         >
                             Deposit
                         </button>
@@ -209,7 +184,7 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value as unknown as Category)}
-                            className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-full"
+                            className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white w-full cursor-pointer"
                         >
                             {CATEGORIES.map(cat => (
                                 <option key={`category-${cat}`} value={cat}>
@@ -228,7 +203,7 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                         />
                         <button
                             onClick={() => handleBalanceChange(false)}
-                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm"
+                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm cursor-pointer"
                         >
                             Withdraw
                         </button>
@@ -240,10 +215,10 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                             value={selectedTargetAccount}
                             onChange={(e) => setSelectedTargetAccount(e.target.value)}
                             disabled={isDepositTyping || isWithdrawTyping}
-                            className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full"
+                            className="px-2 py-1.5 text-xs rounded bg-sky-900 text-white border border-sky-500 focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 w-full cursor-pointer"
                         >
                             <option value="" disabled>Select Target Account</option>
-                            {allAccounts.filter(Boolean).map(acc => (
+                            {targetAccountOptions.map(acc => (
                                 <option key={`target-acc-${acc.accountNumber}`} value={acc.accountNumber}>
                                     {acc.accountType} (#{acc.accountNumber})
                                 </option>
@@ -260,7 +235,7 @@ export default function AccountCard({ account, onAccountUpdated, onEditAccount }
                         />
                         <button
                             onClick={handleAccountTransfer}
-                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm"
+                            className="px-2.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-xs font-medium rounded text-white transition-colors w-full shadow-sm cursor-pointer"
                         >
                             Transfer
                         </button>

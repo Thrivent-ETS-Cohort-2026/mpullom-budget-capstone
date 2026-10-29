@@ -13,7 +13,6 @@ export default function AccountList() {
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isCreating, setIsCreating] = useState<boolean>(false);
-    
     const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
     const { currentUser } = useContext(AuthContext);
@@ -22,7 +21,7 @@ export default function AccountList() {
         if (currentUser?.token != null) {
             try {
                 const data = await fetchAccounts(currentUser.token);
-                setAccounts(data);
+                setAccounts(data || []);
             } catch (err) {
                 console.error("Failed to fetch accounts:", err);
             } finally {
@@ -43,7 +42,6 @@ export default function AccountList() {
     }, [loadAccounts]);
 
     function handleSummary() {
-        console.log("Viewing transactions summary");
         router.push('/banking/transactions');
     }
 
@@ -84,13 +82,13 @@ export default function AccountList() {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleAccountCreation}
-                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow cursor-pointer"
                     >
                         Create Account
                     </button>
                     <button
                         onClick={handleSummary}
-                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow"
+                        className="px-4 py-2 bg-sky-600 hover:bg-sky-800 text-sm font-medium rounded-lg text-white transition-colors shadow cursor-pointer"
                     >
                         Transactions
                     </button>
@@ -105,6 +103,7 @@ export default function AccountList() {
                         <AccountCard
                             key={account.accountNumber}
                             account={account}
+                            allAccounts={sortedAccounts}
                             onAccountUpdated={() => loadAccounts(false)}
                             onEditAccount={() => setEditingAccount(account)}
                         />
